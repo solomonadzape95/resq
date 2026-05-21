@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import "maplibre-gl/dist/maplibre-gl.css";
+
+/* Microinteractions used across buttons, rows, and tabs. */
+@layer utilities {
+  .btn-press {
+    transition:
+      transform 90ms ease,
+      background-color 120ms ease,
+      border-color 120ms ease,
+      box-shadow 120ms ease;
+  }
+  .btn-press:active {
+    transform: translateY(1px) scale(0.98);
+  }
+  .row-hover {
+    transition:
+      background-color 120ms ease,
+      border-color 120ms ease;
+  }
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: #0a0a0a;
+  color: #ededed;
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+/* MapLibre popup ships with a white panel + tip. Re-skin them for the
+   dark theme so the IncidentPopupCard sits in a matching shell. */
+.maplibregl-popup.resq-popup .maplibregl-popup-content {
+  background: transparent;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+}
+.maplibregl-popup.resq-popup .maplibregl-popup-tip {
+  border-top-color: #0a0a0a;
+  border-bottom-color: #0a0a0a;
+}
+.maplibregl-popup.resq-popup .maplibregl-popup-close-button {
+  display: none;
+}
+.maplibregl-ctrl-attrib {
+  background: rgba(10, 10, 10, 0.65) !important;
+  color: #9ca3af !important;
+}
+.maplibregl-ctrl-attrib a {
+  color: #d4d4d4 !important;
+}
