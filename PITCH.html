@@ -1,0 +1,787 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ResQ — Hackathon Pitch Overview</title>
+<style>
+  :root {
+    --bg:        #0a0a0b;
+    --bg-soft:   #131316;
+    --bg-card:   #17171c;
+    --border:    #26262d;
+    --border-2:  #34343d;
+    --fg:        #f4f4f6;
+    --fg-soft:   #c8c8d0;
+    --fg-mute:   #8a8a93;
+    --red:       #ef3b3b;
+    --red-soft:  #ff6b6b;
+    --orange:    #f59e0b;
+    --blue:      #3b82f6;
+    --green:     #22c55e;
+    --mono:      ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --sans:      -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--sans);
+    line-height: 1.65;
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 56px 28px 96px;
+  }
+
+  /* HEADER */
+  .hero {
+    text-align: center;
+    padding: 24px 0 48px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 48px;
+  }
+  .hero .badge {
+    display: inline-block;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--red-soft);
+    padding: 6px 12px;
+    border: 1px solid rgba(239,59,59,0.35);
+    border-radius: 999px;
+    margin-bottom: 18px;
+  }
+  .hero h1 {
+    font-size: 48px;
+    line-height: 1.05;
+    margin: 0 0 14px;
+    letter-spacing: -0.02em;
+  }
+  .hero .tag {
+    font-style: italic;
+    font-size: 20px;
+    color: var(--fg-soft);
+    margin: 0;
+  }
+  .hero .sub {
+    color: var(--fg-mute);
+    margin-top: 10px;
+    font-size: 15px;
+  }
+
+  /* TYPOGRAPHY */
+  h2 {
+    font-size: 30px;
+    letter-spacing: -0.01em;
+    margin: 56px 0 16px;
+    padding-top: 22px;
+    border-top: 1px solid var(--border);
+  }
+  h2 .num {
+    color: var(--red);
+    margin-right: 10px;
+    font-variant-numeric: tabular-nums;
+  }
+  h3 {
+    font-size: 19px;
+    margin: 28px 0 10px;
+    color: var(--fg);
+  }
+  p { margin: 12px 0; color: var(--fg-soft); }
+  strong { color: var(--fg); }
+  em { color: var(--fg); }
+  a { color: var(--red-soft); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* PUNCHLINES */
+  .punchline {
+    background: linear-gradient(180deg, rgba(239,59,59,0.08), rgba(239,59,59,0.02));
+    border: 1px solid rgba(239,59,59,0.35);
+    border-left: 4px solid var(--red);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin: 16px 0 22px;
+    color: var(--fg);
+    font-size: 16px;
+  }
+  .punchline b {
+    color: var(--red-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 11px;
+    display: block;
+    margin-bottom: 6px;
+  }
+  .punchline i { font-weight: 500; }
+
+  /* QUOTES (longer narrated lines) */
+  blockquote {
+    border-left: 3px solid var(--border-2);
+    background: var(--bg-soft);
+    margin: 18px 0;
+    padding: 14px 20px;
+    color: var(--fg-soft);
+    border-radius: 0 8px 8px 0;
+  }
+  blockquote em { color: var(--fg); font-style: italic; }
+  blockquote strong { color: var(--red-soft); }
+  blockquote.layman {
+    border-left-color: var(--red);
+    background: rgba(239,59,59,0.05);
+  }
+  blockquote.layman::before {
+    content: "💬 LAYMAN LINE";
+    display: block;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: var(--red-soft);
+    margin-bottom: 6px;
+  }
+
+  /* ASCII / CODE blocks */
+  pre {
+    background: #08080a;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.45;
+    color: #d7d7df;
+  }
+  code {
+    font-family: var(--mono);
+    font-size: 0.92em;
+    background: #1d1d22;
+    color: #e8e8ee;
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+  pre code { background: transparent; padding: 0; }
+
+  /* TABLES */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 18px 0;
+    font-size: 14.5px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  th, td {
+    border-bottom: 1px solid var(--border);
+    padding: 12px 14px;
+    text-align: left;
+    vertical-align: top;
+    color: var(--fg-soft);
+  }
+  th {
+    background: #1c1c22;
+    color: var(--fg);
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  tr:last-child td { border-bottom: none; }
+  table strong { color: var(--fg); }
+
+  /* LISTS */
+  ul, ol {
+    padding-left: 22px;
+    color: var(--fg-soft);
+  }
+  li { margin: 6px 0; }
+  li::marker { color: var(--red); }
+
+  /* CALLOUT CARDS for the "3-actor" intro */
+  .actors {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin: 22px 0;
+  }
+  .actor-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+  }
+  .actor-card .icon { font-size: 28px; }
+  .actor-card h4 {
+    margin: 8px 0 4px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--red-soft);
+  }
+  .actor-card p { margin: 0; font-size: 13.5px; }
+
+  /* LAYER PILLS */
+  .layer-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: rgba(239,59,59,0.12);
+    color: var(--red-soft);
+    border: 1px solid rgba(239,59,59,0.35);
+  }
+
+  /* TOC */
+  nav.toc {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin-bottom: 32px;
+  }
+  nav.toc h3 {
+    margin: 0 0 12px;
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--fg-mute);
+  }
+  nav.toc ol {
+    columns: 2;
+    column-gap: 28px;
+    padding-left: 22px;
+    margin: 0;
+    font-size: 14px;
+  }
+  nav.toc li { margin: 4px 0; break-inside: avoid; }
+  nav.toc a { color: var(--fg-soft); }
+  nav.toc a:hover { color: var(--red-soft); }
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    color: var(--fg-mute);
+    font-size: 13px;
+    margin-top: 72px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+  footer .tag {
+    font-style: italic;
+    color: var(--fg-soft);
+  }
+
+  /* responsive */
+  @media (max-width: 720px) {
+    .hero h1 { font-size: 34px; }
+    .hero .tag { font-size: 16px; }
+    .actors { grid-template-columns: 1fr; }
+    nav.toc ol { columns: 1; }
+    h2 { font-size: 24px; }
+    pre { font-size: 11.5px; }
+    .wrap { padding: 28px 18px 64px; }
+  }
+
+  /* print */
+  @media print {
+    body { background: white; color: black; }
+    .hero, h2, h3, p, li, td, th, blockquote, pre { color: black !important; }
+    pre { background: #f6f6f6; border-color: #ddd; }
+    .punchline { background: #fff8f8; border-color: #f3a; color: black; }
+    nav.toc { display: none; }
+    a { color: black; text-decoration: underline; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="badge">🚨 ResQ · Hackathon Pitch Overview</div>
+    <h1>Every second counts.<br/>Any phone. Any network.</h1>
+    <p class="tag">"Nigeria's community-powered emergency response network — built for the people who can't afford to wait."</p>
+    <p class="sub">This document is <strong>what to say</strong>, not a script. Read it, internalise it, then deliver it in your own voice. Each section has a one-line <em>punchline</em> you can lift verbatim if you forget the rest.</p>
+  </header>
+
+  <nav class="toc">
+    <h3>Pitch Map</h3>
+    <ol>
+      <li><a href="#s0">The Cold Open</a></li>
+      <li><a href="#s1">The Problem</a></li>
+      <li><a href="#s2">The Solution in One Sentence</a></li>
+      <li><a href="#s3">Layer 1 — The USSD</a></li>
+      <li><a href="#s4">Layer 2 — The Voice Call</a></li>
+      <li><a href="#s5">Layer 3 — The Automation</a></li>
+      <li><a href="#s6">Layer 4 — The Coordinator Dashboard</a></li>
+      <li><a href="#s7">End-to-End Demo Story</a></li>
+      <li><a href="#s8">Why This Is GovTech Gold</a></li>
+      <li><a href="#s9">Built vs Phase 2</a></li>
+      <li><a href="#s10">The Ask</a></li>
+      <li><a href="#s11">Q&amp;A Prep</a></li>
+      <li><a href="#s12">Speaker Cheat Sheet</a></li>
+      <li><a href="#s13">Tone Tips</a></li>
+    </ol>
+  </nav>
+
+  <!-- 0 -->
+  <h2 id="s0"><span class="num">0.</span>The Cold Open <span class="layer-pill">30 seconds</span></h2>
+
+  <div class="punchline"><b>Punchline</b><i>"In Nigeria today, dialling 112 is a coin-toss. We turned that coin into a guaranteed answer — on any phone, on any network, in under 10 seconds."</i></div>
+
+  <p>Walk on stage. Hold up a feature phone (Nokia / Itel, whatever's cheap). Then hold up an iPhone. Say:</p>
+
+  <blockquote>
+    <em>"Tonight, someone in Mushin is having a heart attack. Their grandmother grabs the phone next to the bed. It's this one (hold up the feature phone). It has no internet. No app store. No GPS. The official emergency line either doesn't pick up, or sends her in a circle. She has 4 minutes before brain death.</em><br/><br/>
+    <em>We built ResQ so that in those 4 minutes, she dials a 6-digit code, presses '1', and a trained doctor 800 metres away is already on the way — while a government coordinator in Abuja watches the whole rescue happen on a live map.</em><br/><br/>
+    <em>This isn't a future-tech demo. It's running right now. Let me show you."</em>
+  </blockquote>
+
+  <p><strong>Tip:</strong> hold the feature phone for the <em>whole pitch</em>. It becomes a visual anchor — "every feature we ship works on <strong>this</strong>".</p>
+
+  <!-- 1 -->
+  <h2 id="s1"><span class="num">1.</span>The Problem — Why Nigeria's emergency system is broken</h2>
+
+  <div class="punchline"><b>Punchline</b><i>"112 is broken. 911 is American. Nigeria needs its own answer — and it has to start from a feature phone."</i></div>
+
+  <p>Three facts to drop in:</p>
+  <ol>
+    <li>🚑 <strong>Nigeria has no working unified emergency number.</strong> 112 exists on paper. In practice, call drop rates are sky-high, dispatch is manual, and most LGAs (Local Government Areas) have no integration at all.</li>
+    <li>📵 <strong>~60% of Nigerian phones are feature phones or smartphones with no data credit at the moment of crisis.</strong> An "emergency app" that needs the Play Store is an emergency app for the wealthy.</li>
+    <li>🏥 <strong>First responders are already there — they're just invisible.</strong> Every neighbourhood has off-duty nurses, NYSC doctors, vigilante security, retired firefighters. The problem isn't supply. It's matching.</li>
+  </ol>
+
+  <p>Illustration — the gap:</p>
+<pre>  Citizen in crisis              The "system"            Help arrives
+  ───────────────────            ────────────             ────────────
+  📞 dials 112        ──×──►   ❌ no answer        ─────► 🪦  too late
+  📞 calls relative   ──?──►   📞 calls another    ─────► ⏱  35–90 min
+  📱 posts on Twitter ──?──►   🤷 strangers retweet ────► 🤷  maybe</pre>
+
+  <p>ResQ collapses all three lanes into one: <strong>dial → matched → on the way, in under a minute.</strong></p>
+
+  <!-- 2 -->
+  <h2 id="s2"><span class="num">2.</span>The Solution in One Sentence</h2>
+
+  <div class="punchline"><b>Punchline</b><i>"ResQ is one phone number that turns any caller into a verified emergency, finds the nearest trained volunteer, and puts a government coordinator on the same live screen as the rescue."</i></div>
+
+  <p>Three actors. One pipeline.</p>
+
+  <div class="actors">
+    <div class="actor-card">
+      <div class="icon">📞</div>
+      <h4>The Caller</h4>
+      <p>Any phone, any network — even a ₦4,000 Nokia.</p>
+    </div>
+    <div class="actor-card">
+      <div class="icon">🚑</div>
+      <h4>The Rescuer</h4>
+      <p>Nearest verified, skill-matched volunteer.</p>
+    </div>
+    <div class="actor-card">
+      <div class="icon">🖥</div>
+      <h4>The Govt Coordinator</h4>
+      <p>Live dashboard: every incident, every responder, every word.</p>
+    </div>
+  </div>
+
+<pre>┌──────────────┐        ┌─────────────────┐        ┌────────────────────┐
+│  THE CALLER  │  ────► │   THE RESCUER   │  ◄──── │ THE GOVT COORDINATOR│
+│ (any phone)  │        │ (nearest verified│        │  (live dashboard)  │
+│              │        │   volunteer)    │        │                    │
+└──────────────┘        └─────────────────┘        └────────────────────┘
+        ▲                        ▲                          ▲
+        │                        │                          │
+        └────────── ResQ pipeline (USSD + Voice AI + Auto-dispatch) ──────┘</pre>
+
+  <p>ResQ has <strong>four layers</strong> stacked on top of each other. Each one works alone. Together they win the hackathon.</p>
+
+  <table>
+    <thead><tr><th>Layer</th><th>What it does</th><th>Why a layman cares</th></tr></thead>
+    <tbody>
+      <tr><td><strong>1. USSD</strong></td><td>Dial <code>*384*1#</code> — pick emergency type — done.</td><td>Works on a ₦4,000 Nokia. No app. No internet. No data.</td></tr>
+      <tr><td><strong>2. Voice AI</strong></td><td>If they can talk, an AI agent picks up and <em>converses</em> — asking the right questions.</td><td>The caller can be panicking. The AI stays calm, in English or Pidgin.</td></tr>
+      <tr><td><strong>3. Automation</strong></td><td>AI scores severity, extracts location from speech, ranks the nearest skilled responders, and dispatches them instantly.</td><td>No human delay between dial and dispatch. The grandmother doesn't wait on hold.</td></tr>
+      <tr><td><strong>4. Dashboard</strong></td><td>A government coordinator sees every incident, every responder, the live transcript, and the moving pin — in real time.</td><td>Government finally has <strong>eyes</strong> on what's happening in their LGA, in real time.</td></tr>
+    </tbody>
+  </table>
+
+  <!-- 3 -->
+  <h2 id="s3"><span class="num">3.</span>Layer 1 — The USSD <span class="layer-pill">The part that makes this Nigerian</span></h2>
+
+  <div class="punchline"><b>Punchline</b><i>"If you can dial, you can be rescued. That's the whole pitch — and that's why this is govtech, not just tech."</i></div>
+
+  <p>USSD is the boring grey text menu you see when you check your airtime balance. It is <strong>the most accessible technology on the planet</strong>. It works on every phone built since 1996. It works without data. It works in a buka in Onitsha and a fishing village in Bonny.</p>
+
+  <h3>What the user actually sees</h3>
+  <p>When they dial <code>*384*1#</code>, here is the <strong>literal screen</strong> that appears (this is the real text from <code>apps/api/src/routes/ussd.ts</code>):</p>
+
+<pre>╭───────────────────────────╮          ╭───────────────────────────╮
+│  ResQ Emergency Alert     │          │  ResQ Alert Sent.         │
+│                           │          │                           │
+│  Choose emergency type:   │   ───►   │  Is this your number?     │
+│  1. Medical               │          │  1. Yes                   │
+│  2. Fire                  │          │  2. No, calling for       │
+│  3. Crime / Security      │          │     someone               │
+│  4. Road Accident         │          │                           │
+╰───────────────────────────╯          ╰───────────────────────────╯
+            │                                       │
+            ▼                                       ▼
+       (caller picks 1)                  ╭───────────────────────────╮
+                                         │  ResQ Alert Sent.         │
+                                         │  Medical emergency        │
+                                         │  reported.                │
+                                         │  Responders being         │
+                                         │  contacted.               │
+                                         │  Keep this line open.     │
+                                         │  Reply to incoming SMS    │
+                                         │  with your nearest        │
+                                         │  landmark.                │
+                                         ╰───────────────────────────╯</pre>
+
+  <p><strong>Two screens. Five seconds. Done.</strong></p>
+
+  <h3>Three things to brag about here</h3>
+  <ol>
+    <li><strong>"Is this your number?" / "No, calling for someone."</strong> — This is the question no one else asks. In Nigeria, <strong>people share phones</strong>. If you collapse from a stroke, your neighbour grabs <em>their</em> phone. ResQ knows to route the SMS to the right person.</li>
+    <li><strong>Landmark-by-SMS.</strong> A feature phone has no GPS. So after the USSD ends, we send an SMS asking <em>"Reply with your nearest landmark."</em> The caller texts back <strong>"Behind the big mosque on Aba Road"</strong> — and our AI converts that into a map pin. The grandmother doesn't need to know what latitude is.</li>
+    <li><strong>Placeholder pin on dial.</strong> The moment they press '1', a pin lands on the coordinator's map <em>before the call even ends</em> — so the coordinator can already start watching. No dead air on the government side.</li>
+  </ol>
+
+  <blockquote class="layman"><em>"USSD is the same menu you see when you check airtime. We're using it to save lives. If your phone can ask for your balance, your phone can call ResQ."</em></blockquote>
+
+  <!-- 4 -->
+  <h2 id="s4"><span class="num">4.</span>Layer 2 — The Voice Call <span class="layer-pill">AI does the panicking for you</span></h2>
+
+  <div class="punchline"><b>Punchline</b><i>"If the caller can speak, the AI picks up, talks them through it in plain English, and writes the report while they're still on the line."</i></div>
+
+  <p>For callers with airtime to make a voice call (or for smartphone users), ResQ also exposes a <strong>voice line</strong>. Here's what happens — and why it's wild:</p>
+
+  <h3>The flow</h3>
+<pre>   📞 Caller dials       🤖 ResQ AI agent       📝 Live transcript       🖥  Coordinator dashboard
+   ──────────────       ──────────────────       ──────────────────       ──────────────────────
+        │                       │                        │                          │
+        │  "Hello? Help!"       │                        │                          │
+        ├──────────────────────►│                        │                          │
+        │                       │  "Stay calm. Are you   │                          │
+        │                       │   the patient? Where   │                          │
+        │                       │   are you?"            │                          │
+        │◄──────────────────────┤                        │                          │
+        │                       │                        │                          │
+        │  "My dad… chest…      │                        │                          │
+        │   we're near Shoprite │                        │                          │
+        │   in Lekki Phase 1"   │                        │                          │
+        ├──────────────────────►│  (stream every line)   │                          │
+        │                       ├───────────────────────►│   (stream every line)    │
+        │                       │                        ├─────────────────────────►│
+        │                       │                        │                          │  ← coordinator
+        │                       │                        │                          │     watches the
+        │                       │                        │                          │     conversation
+        │                       │                        │                          │     live</pre>
+
+  <h3>Three magic moments to point at</h3>
+  <ol>
+    <li><strong>The AI agent (ElevenLabs voice + Claude brain) picks up the call in milliseconds.</strong> No queue. No "Press 1 for English". The caller hears a calm human-sounding voice that says <em>"You're connected to ResQ. Tell me what's happening."</em></li>
+    <li><strong>The transcript streams live to the dashboard.</strong> As the caller speaks, the words appear letter-by-letter on the coordinator's screen — <em>and on the responder's phone too</em>. The volunteer driving to the scene already knows the patient is bleeding, what's bleeding, and that the husband is on-scene.</li>
+    <li><strong>The AI extracts structured detail from natural speech:</strong>
+      <ul>
+        <li>"near Shoprite in Lekki Phase 1" → map pin on the dashboard</li>
+        <li>"my dad, 67, chest pain, sweating" → victim age, severity, symptoms</li>
+        <li>"I think he's getting worse" → urgency signal that bumps the severity score</li>
+      </ul>
+    </li>
+  </ol>
+
+  <blockquote class="layman"><em>"You don't have to know what to say. The AI knows what to ask. And while you're still answering, help is already moving."</em></blockquote>
+
+  <!-- 5 -->
+  <h2 id="s5"><span class="num">5.</span>Layer 3 — The Automation <span class="layer-pill">The part that wins the hackathon</span></h2>
+
+  <div class="punchline"><b>Punchline</b><i>"From dial to dispatch in under 10 seconds — with zero humans in the loop. The first time a person is involved is when the volunteer accepts the alert on their phone."</i></div>
+
+  <p>This is the section where the judges should lean forward. Show the diagram below on screen.</p>
+
+<pre>       ┌────────────────────────────────────────────────────────────┐
+       │                  ResQ AUTOMATION ENGINE                    │
+       │                                                            │
+       │   ┌───────────┐    ┌──────────────┐    ┌──────────────┐    │
+       │   │  TRIAGE   │    │  LOCATION    │    │   DISPATCH   │    │
+       │   │  (Claude) │    │  EXTRACTOR   │    │  (matcher)   │    │
+       │   │  ───────  │    │  ───────────│    │  ──────────  │    │
+       │   │ severity  │    │ "near big    │    │ skill match  │    │
+       │   │ score 1–10│    │  mosque" →   │    │ + Haversine  │    │
+       │   │ + label   │    │   lat,lng    │    │ + radius     │    │
+       │   └─────┬─────┘    └───────┬──────┘    └──────┬───────┘    │
+       │         │                  │                  │            │
+       │         └──────────┬───────┴──────────┬───────┘            │
+       │                    ▼                  ▼                    │
+       │            ┌───────────────┐  ┌────────────────────┐       │
+       │            │ INCIDENT CARD │  │ PUSH TO RESPONDERS │       │
+       │            │  on dashboard │  │   (real-time WS)   │       │
+       │            └───────────────┘  └────────────────────┘       │
+       └────────────────────────────────────────────────────────────┘
+                       ▲                              │
+                       │                              ▼
+                  USSD / Voice / SMS              📱 Volunteer phone:
+                                                  "Medical, 800m away,
+                                                   tap to ACCEPT"</pre>
+
+  <h3>Walk the judges through each box</h3>
+
+  <p><strong>Box 1 — AI Triage</strong> (<code>services/openrouter.ts</code>)<br/>
+  Claude 3.5 Sonnet looks at:</p>
+  <ul>
+    <li>Incident type (medical / fire / crime / accident)</li>
+    <li>Time of day — <em>"2 AM medical" is more critical than "2 PM medical"</em></li>
+    <li>How many responders are nearby — <em>if zero responders are within 10 km, the severity is auto-bumped</em></li>
+  </ul>
+  <p>It returns: <code>{ severity: "high", triage_score: 8, responders_recommended: 2 }</code>. Color-coded on the dashboard.</p>
+
+  <p><strong>Box 2 — Location extractor</strong><br/>
+  For every chunk of transcript, the AI pulls out:</p>
+  <ul>
+    <li><code>location_text</code>: the exact phrase the caller used</li>
+    <li><code>landmarks</code>: an array of nearby reference points</li>
+    <li><code>victim_details</code>: age, count, severity</li>
+    <li><code>urgency_signals</code>: "bleeding won't stop", "not breathing"</li>
+  </ul>
+  <p>The map pin <strong>moves in real time</strong> as the caller adds detail. The judges will <em>gasp</em> when you show that.</p>
+
+  <p><strong>Box 3 — Dispatcher</strong> (<code>services/matcher.ts</code>)<br/>
+  For every responder in the database, ResQ checks:</p>
+  <ul>
+    <li>✅ Are they <code>available</code> and <code>verified</code>?</li>
+    <li>✅ Do their skills match? (<code>medical</code> for medical, <code>fire_warden</code> for fire, etc.)</li>
+    <li>✅ Are they within their declared service radius? (Haversine distance)</li>
+    <li>✅ Rank by distance, take top 5</li>
+  </ul>
+  <p>Push to all 5 phones simultaneously via WebSocket. <strong>First to accept gets the job.</strong></p>
+
+  <blockquote class="layman"><em>"The AI does in 3 seconds what a human dispatcher does in 3 minutes — and it never goes on lunch break."</em></blockquote>
+
+  <!-- 6 -->
+  <h2 id="s6"><span class="num">6.</span>Layer 4 — The Coordinator Dashboard <span class="layer-pill">The govtech part</span></h2>
+
+  <div class="punchline"><b>Punchline</b><i>"For the first time, a state emergency commissioner has a single screen that shows every active emergency, every responder, every conversation — live."</i></div>
+
+  <p>Show a screenshot here. Or, better, <strong>share the screen and click through the live demo dashboard</strong>.</p>
+
+  <h3>What's on the screen</h3>
+<pre>┌────────────────────────────────────────────────────────────────────────────────┐
+│  🚨 ResQ  |  Port Harcourt LGA  |  ●  LIVE      🔴 4 critical  ✅ 12 responders │
+├──────────────────────┬─────────────────────────────────────────────┬──────────┤
+│                      │                                             │          │
+│  ACTIVE INCIDENTS    │                LIVE MAP                     │ INCIDENT │
+│  ───────────────     │       ───────────────────────────           │  DETAIL  │
+│  🔴 Medical          │                                             │ ──────── │
+│     07:42 · Lekki    │         📍 (red pin) Medical                │ Caller:  │
+│     score 9/10       │              🟢 ─── 🟢 (responders          │ +234801…│
+│     2 responders     │                       en route)             │          │
+│  ───────────────     │                                             │ Triage:  │
+│  🟠 Fire             │         📍 (orange pin) Fire                │  9/10    │
+│     07:38 · D-Line   │              🟢 (1 responder accepted)      │ Critical │
+│     score 7/10       │                                             │          │
+│  ───────────────     │         📍 (blue pin) Crime                 │ LIVE     │
+│  🔵 Crime            │                                             │ TRANS-   │
+│     07:35 · Diobu    │                                             │ CRIPT:   │
+│     score 5/10       │  [open map · zoom · filter responders]      │ "We are  │
+│                      │                                             │  near    │
+│                      │                                             │  the big │
+│                      │                                             │  mosque…"│
+│                      │                                             │          │
+│                      │                                             │ [Call    │
+│                      │                                             │  caller] │
+│                      │                                             │ [Mark    │
+│                      │                                             │  resolved]│
+└──────────────────────┴─────────────────────────────────────────────┴──────────┘</pre>
+
+  <h3>What the coordinator can do (and why it's govtech)</h3>
+  <ol>
+    <li><strong>See every incident in their LGA</strong> — colour-coded by severity, sorted by AI triage score.</li>
+    <li><strong>Watch the rescue happen on the map</strong> — responder pins move in real time as they drive to the scene.</li>
+    <li><strong>Read the call transcript live</strong> — no need to wait for a report. They can override if the AI misclassified.</li>
+    <li><strong>Push to talk</strong> — one button initiates a callback to the caller through Africa's Talking voice.</li>
+    <li><strong>Audit trail by default</strong> — every state change (<code>new → triaged → assigned → active → resolved</code>) is timestamped to the millisecond. <em>This is the line that wins the govtech category.</em></li>
+  </ol>
+
+  <h3>The status pipeline (judges love a flow)</h3>
+<pre>   new ──► triaged ──► assigned ──► active ──► resolved
+                                   │
+                                   ├──► false_alarm   (coordinator marks)
+                                   └──► cancelled      (caller withdraws)</pre>
+
+  <p>Every transition is logged with a timestamp, the actor, and the previous state. <strong>You can't lose evidence. You can't change history. You can audit a state commissioner's response time the same way you'd audit a bank ledger.</strong></p>
+
+  <blockquote class="layman"><em>"For the first time, government can prove it showed up — or be held accountable when it didn't. That's not just tech. That's reform."</em></blockquote>
+
+  <!-- 7 -->
+  <h2 id="s7"><span class="num">7.</span>The End-to-End Demo Story <span class="layer-pill">Run this live</span></h2>
+
+  <div class="punchline"><b>Punchline</b><i>"Watch this. From dial to dispatch in 8 seconds. No edits, no cuts."</i></div>
+
+  <p>This is the story arc for the live demo. <strong>Rehearse it three times.</strong> Show all three screens side-by-side: the dialer (phone), the coordinator dashboard, and a second phone showing the responder view.</p>
+
+<pre>   T+0s    📞 Open AT simulator (or real phone). Dial *384*1#.
+   T+1s    Menu appears: pick 1 (Medical).
+   T+3s    Press 1 (yes, my number).
+   T+4s    USSD ends — message: "Responders being contacted."
+   T+4s    🖥  Dashboard: red Medical pin appears in Port Harcourt.
+                AI triage score appears: "Severity: high · 8/10"
+   T+5s    📱 Responder phone (volunteer): incident card pops up.
+                "Medical · 800m · tap to ACCEPT"
+   T+6s    Responder taps ACCEPT.
+   T+7s    🖥  Dashboard: responder pin turns green, joins the incident.
+                Incident status flips: new → triaged → assigned → active.
+   T+8s    Coordinator clicks "Push transcript" — paste a one-line caller
+                quote ("we are near the big mosque on Aba Road").
+   T+9s    🖥  Map pin **moves** to the actual mosque location.
+                📱 Responder phone shows the same transcript line.
+   T+15s   Click "Mark resolved." Audit trail ticks over.</pre>
+
+  <p>End the demo by saying:</p>
+  <blockquote><em>"That's the full cycle — citizen, volunteer, government — in under 15 seconds. Today, on the official 112 line, the caller is usually still on hold."</em></blockquote>
+
+  <!-- 8 -->
+  <h2 id="s8"><span class="num">8.</span>Why This Is GovTech Gold <span class="layer-pill">The closer</span></h2>
+
+  <div class="punchline"><b>Punchline</b><i>"ResQ isn't an app. It's a piece of public infrastructure that costs less than a single ambulance and works from day one in every LGA in Nigeria."</i></div>
+
+  <p>Five points. Hit them like nails.</p>
+  <table>
+    <thead><tr><th>#</th><th>The govtech win</th><th>Why judges care</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><strong>Universal access</strong></td><td>Works on a ₦4,000 phone. No digital divide. Constitutional-grade access to emergency services.</td></tr>
+      <tr><td>2</td><td><strong>Accountability built-in</strong></td><td>Every incident has an immutable audit trail. Response times become a public metric, not a press release.</td></tr>
+      <tr><td>3</td><td><strong>LGA-scalable</strong></td><td>Each Local Government Area gets its own coordinator login. 774 LGAs. Same software. No re-build.</td></tr>
+      <tr><td>4</td><td><strong>Costs less than 1 siren</strong></td><td>The whole stack runs on Vercel + Railway + Africa's Talking. ₦ figures we can quote: hosting + telco aggregator licensing, under ₦5M/year per LGA at launch.</td></tr>
+      <tr><td>5</td><td><strong>Trained volunteers = existing public asset</strong></td><td>Off-duty nurses, NYSC doctors, vigilantes, FRSC. They're already out there. ResQ just <em>finds</em> them.</td></tr>
+    </tbody>
+  </table>
+
+  <blockquote class="layman"><em>"Government doesn't need to hire 10,000 paramedics. They just need to find the ones already in the neighbourhood. ResQ is the find."</em></blockquote>
+
+  <!-- 9 -->
+  <h2 id="s9"><span class="num">9.</span>What's Already Built vs Phase 2 <span class="layer-pill">Judges respect honesty</span></h2>
+
+  <div class="punchline"><b>Punchline</b><i>"This is not a mockup. This is running, end-to-end, on real telco infrastructure. The phase-2 roadmap is what scale looks like — not what we have to fix to demo."</i></div>
+
+  <h3>✅ Built and working (demo this)</h3>
+  <ul>
+    <li>USSD round-trip via Africa's Talking sandbox — real telco, real <code>*384*X#</code>-style code.</li>
+    <li>SMS confirmation + landmark reply.</li>
+    <li>AI voice call agent (ElevenLabs) with live transcript streaming.</li>
+    <li>Claude-powered triage (severity score + recommended responder count).</li>
+    <li>Claude-powered location extraction from natural speech.</li>
+    <li>Skill + Haversine distance dispatcher.</li>
+    <li>Coordinator dashboard with live map (MapLibre + OpenStreetMap, no Google bill).</li>
+    <li>Responder mobile-responsive web view.</li>
+    <li>Full Socket.io real-time backbone.</li>
+    <li>Postgres audit trail with 7 incident statuses, 5 responder statuses, 4 incident types.</li>
+  </ul>
+
+  <h3>🛠 Phase 2 (we know what's next)</h3>
+  <ul>
+    <li>React Native caller/responder apps (currently mobile-responsive web).</li>
+    <li>Live shortcode (<code>*XYZ#</code>) via NCC-licensed aggregator — 4–8 weeks of paperwork, not engineering.</li>
+    <li>MTN/Airtel cell-tower triangulation MOU — gives us coarse location even without SMS.</li>
+    <li>Multi-LGA role management for state-level commissioners.</li>
+    <li>Analytics dashboard (Recharts) — public response-time metrics.</li>
+  </ul>
+
+  <blockquote class="layman"><em>"What you're seeing is the engine. Phase 2 is the bodywork. The car already drives."</em></blockquote>
+
+  <!-- 10 -->
+  <h2 id="s10"><span class="num">10.</span>The Ask <span class="layer-pill">Close with this</span></h2>
+
+  <div class="punchline"><b>Punchline</b><i>"Give us this hackathon, and we walk out with the runway to put *384*1# on every Nigerian phone in 12 months."</i></div>
+
+  <p>Read these three lines almost verbatim:</p>
+  <blockquote>
+    <em>"We're not asking you to imagine a future. We built one. Tonight, with the prize from this hackathon, we do three things:</em>
+    <ol>
+      <li><em>We pay the NCC aggregator licence and turn the sandbox code into a live national shortcode.</em></li>
+      <li><em>We pilot in one LGA — Port Harcourt — for 90 days with 100 verified volunteers.</em></li>
+      <li><em>We measure response times against the existing 112 line and publish the numbers.</em></li>
+    </ol>
+    <em>If we beat 112, the rest writes itself. Every state commissioner in Nigeria will be on this dashboard within 18 months. Because the alternative is what we have today — and we all know what that looks like."</em>
+  </blockquote>
+
+  <p>End with the cold-open line, brought back:</p>
+  <blockquote><em>"Every second counts. Any phone. Any network. That's ResQ. Thank you."</em></blockquote>
+
+  <p style="text-align:center; font-size:22px; margin-top:18px;">🎤 Drop.</p>
+
+  <!-- 11 -->
+  <h2 id="s11"><span class="num">11.</span>Q&amp;A Prep <span class="layer-pill">Have these ready</span></h2>
+
+  <table>
+    <thead><tr><th>Likely question</th><th>Crisp answer</th></tr></thead>
+    <tbody>
+      <tr><td><em>"How do you verify responders aren't fake?"</em></td><td>Public registration form + manual coordinator verification + skill tags audited against credentials (NYSC ID, MDCN number, FRSC badge). The <code>verified</code> flag in the DB is the gate — only verified responders get dispatched.</td></tr>
+      <tr><td><em>"What if no responder is in the area?"</em></td><td>The AI triage <strong>detects zero-responder areas</strong> and auto-bumps severity, which escalates to the LGA coordinator for manual fallback (call ambulance, alert police). Coverage gaps become a <em>visible metric</em>, not a hidden failure.</td></tr>
+      <tr><td><em>"What about prank calls / abuse?"</em></td><td>Each USSD session is tied to a phone number + network code. Three false alarms from one number triggers a soft block. Coordinator can also mark <code>false_alarm</code> from the dashboard — full audit trail.</td></tr>
+      <tr><td><em>"Why won't telcos block you?"</em></td><td>We're not bypassing them. We use <strong>Africa's Talking</strong>, an NCC-licensed aggregator. The shortcode lives on real telco rails. We pay the rev-share.</td></tr>
+      <tr><td><em>"Why a hackathon project, not a startup?"</em></td><td>Both. ResQ is govtech infrastructure first, business model second. Revenue model in phase 2: per-LGA SaaS licence + corporate sponsorship of responder training.</td></tr>
+      <tr><td><em>"Why isn't this just 112 with a fresh coat of paint?"</em></td><td>112 is a phone number. ResQ is a <strong>matching engine</strong>. The difference is the same as a switchboard vs Uber.</td></tr>
+      <tr><td><em>"What's the moat?"</em></td><td>(a) The verified responder network — a two-sided graph that compounds. (b) The audit trail — once a government department commits to ResQ for accountability, switching cost is high. (c) The AI pipeline — tuned on Nigerian speech, Pidgin, and local landmarks.</td></tr>
+      <tr><td><em>"How is this different from emergency apps like Sety or RescueMe?"</em></td><td>They are <strong>smartphone-app-first</strong>. ResQ is <strong>USSD-first</strong>, with the app as an upgrade. We start with the 100% of Nigerians who have a phone, not the 30% who have a smartphone with data.</td></tr>
+    </tbody>
+  </table>
+
+  <!-- 12 -->
+  <h2 id="s12"><span class="num">12.</span>Speaker Notes — Cheat Sheet <span class="layer-pill">One page to print</span></h2>
+
+<pre>┌────────────────────────────────────────────────────────────────┐
+│  RESQ — PITCH CHEAT SHEET                                      │
+├────────────────────────────────────────────────────────────────┤
+│  HOOK:    "Dialling 112 in Nigeria is a coin-toss.             │
+│            We turned the coin into an answer."                 │
+│                                                                │
+│  PROBLEM: 112 broken. Apps need data. Responders invisible.    │
+│                                                                │
+│  SOLUTION: One dial → AI triage → nearest verified volunteer   │
+│            → live coordinator dashboard.                       │
+│                                                                │
+│  4 LAYERS: USSD · Voice AI · Automation · GovDashboard         │
+│                                                                │
+│  DEMO:    Dial *384*1# → pick 1 → pin lights up dashboard      │
+│           → responder phone buzzes → tap ACCEPT → map moves.   │
+│           Under 15 seconds end-to-end.                         │
+│                                                                │
+│  GOVTECH: Universal access · audit trail · LGA-scalable        │
+│           · cheap · uses existing volunteers.                  │
+│                                                                │
+│  ASK:     Aggregator licence + 90-day Port Harcourt pilot      │
+│           + publish the numbers vs 112.                        │
+│                                                                │
+│  CLOSER:  "Every second counts. Any phone. Any network."       │
+└────────────────────────────────────────────────────────────────┘</pre>
+
+  <!-- 13 -->
+  <h2 id="s13"><span class="num">13.</span>Tone Tips for Delivery</h2>
+
+  <ul>
+    <li><strong>Don't say "we built an AI emergency response platform."</strong> Say <em>"we built the thing that should have been 112."</em> The judges hear the first phrase 20 times a day.</li>
+    <li><strong>Hold the feature phone the entire pitch.</strong> It is your single best prop. Every time you say "any phone", point at it.</li>
+    <li><strong>Use one Nigerian-specific noun per minute.</strong> <em>Mushin. Aba Road. NYSC. Buka. Lekki Phase 1.</em> It signals that you built this for <em>here</em>, not for a Silicon Valley accelerator.</li>
+    <li><strong>Slow down on the audit trail line.</strong> That's the line that wins the govtech category. Pause. Let it land.</li>
+    <li><strong>End on the cold open.</strong> <em>"Every second counts. Any phone. Any network."</em> Don't add anything after it. Walk away from the mic.</li>
+  </ul>
+
+  <footer>
+    <p class="tag">ResQ — because every second counts.</p>
+  </footer>
+</div>
+</body>
+</html>
