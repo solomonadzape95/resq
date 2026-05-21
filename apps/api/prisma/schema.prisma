@@ -1,0 +1,170 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum IncidentType {
+  medical
+  fire
+  crime
+  accident
+}
+
+enum IncidentStatus {
+  new
+  triaged
+  assigned
+  active
+  resolved
+  false_alarm
+  cancelled
+}
+
+enum IncidentSource {
+  ussd
+  app
+  web
+  sms
+  voice
+}
+
+enum Severity {
+  low
+  medium
+  high
+  critical
+}
+
+enum ResponderStatus {
+  available
+  busy
+  off_duty
+}
+
+enum UserRole {
+  caller
+  responder
+  coordinator
+  admin
+}
+
+enum IncidentResponderStatus {
+  assigned
+  accepted
+  declined
+  en_route
+  on_scene
+  resolved
+}
+
+model User {
+  id              String    @id @default(cuid())
+  phone           String    @unique
+  name            String?
+  email           String?   @unique
+  passwordHash    String?
+  role            UserRole  @default(caller)
+  savedLocations  Json?
+  verifiedPhone   Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  responder       Responder?
+  incidents       Incident[]
+}
+
+model Incident {
+  id                  String          @id @default(cuid())
+  createdAt           DateTime        @default(now())
+  type                IncidentType
+  status              IncidentStatus  @default(new)
+  callerPhone         String?
+  callerUserId        String?
+  source              IncidentSource
+  locationText        String?
+  locationLat         Float?
+  locationLng         Float?
+  locationConfirmed   Boolean         @default(false)
+  aiTriageScore       Int?
+  aiSeverity          Severity?
+  aiPriorityReason    String?
+  aiExtractedLocation String?
+  transcriptFull      String?
+  transcriptSummary   String?
+  resolvedAt          DateTime?
+  updatedAt           DateTime        @updatedAt
+
+  caller     User?               @relation(fields: [callerUserId], references: [id])
+  responders IncidentResponder[]
+  calls      Call[]
+
+  @@index([status, createdAt])
+  @@index([type])
+}
+
+model Responder {
+  id                   String          @id @default(cuid())
+  userId               String          @unique
+  user                 User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skills               String[]
+  verified             Boolean         @default(false)
+  availabilityRadiusKm Int             @default(5)
+  status               ResponderStatus @default(off_duty)
+  currentLat           Float?
+  currentLng           Float?
+  lastLocationUpdate   DateTime?
+  totalResponses       Int             @default(0)
+  avgResponseTime      Float?
+
+  incidents IncidentResponder[]
+
+  @@index([status])
+}
+
+model IncidentResponder {
+  id          String                  @id @default(cuid())
+  incidentId  String
+  responderId String
+  assignedAt  DateTime                @default(now())
+  acceptedAt  DateTime?
+  arrivedAt   DateTime?
+  status      IncidentResponderStatus @default(assigned)
+  etaMinutes  Int?
+
+  incident  Incident  @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  responder Responder @relation(fields: [responderId], references: [id], onDelete: Cascade)
+
+  @@unique([incidentId, responderId])
+}
+
+model Call {
+  id                   String    @id @default(cuid())
+  incidentId           String
+  initiatedBy          String?
+  callerNumber         String
+  startedAt            DateTime  @default(now())
+  endedAt              DateTime?
+  recordingUrl         String?
+  transcriptRaw        String?
+  transcriptProcessed  String?
+  aiLocationExtracted  String?
+  aiDetailsExtracted   Json?
+
+  incident Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+}
+
+model UssdSession {
+  id           String    @id @default(cuid())
+  sessionId    String    @unique
+  phoneNumber  String
+  serviceCode  String
+  text         String
+  incidentId   String?
+  borrowed     Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
