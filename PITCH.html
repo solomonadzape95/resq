@@ -4,6 +4,12 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>ResQ Pitch Deck</title>
+<!-- Preload art for the intro / outro slides and the dashboard map tile.
+     Without this, hidden slides defer their fetches until Chrome flips them
+     visible during print snapshot, which sometimes lands too late. -->
+<link rel="preload" as="image" href="begin-resq.png" />
+<link rel="preload" as="image" href="end-resq.png" />
+<link rel="preload" as="image" href="dashboard-map.png" />
 <style>
   /* ---- TOKENS ----------------------------------------------------------- */
   :root {
@@ -58,15 +64,20 @@
   }
   .slide--active { display: flex; }
 
-  /* Full-bleed image slides used as the deck's intro and outro. The image
-     fills the viewport edge-to-edge; the header chrome and body content
-     are suppressed so nothing competes with the artwork. */
+  /* Full-bleed image slides used as the deck's intro and outro. We use an
+     <img> child (not background-image) because non-active slides start
+     life as display:none in the browser, which used to defer the outro
+     image's fetch until past Chrome's print snapshot. Real <img> elements
+     in the DOM are always loaded regardless of slide visibility. */
   .slide--image {
     padding: 0 !important;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
     background-color: #000;
+  }
+  .slide--image img.slide__art {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
   }
   .slide--image .head,
   .slide--image .body,
@@ -383,14 +394,14 @@
 
   /* ---- DASHBOARD MOCK --------------------------------------------------- */
   .dashmock {
-    margin-top: 34px;
+    margin-top: 26px;
     border: 1px solid var(--border);
     background: #0a0a10;
     border-radius: 6px;
     overflow: hidden;
     display: grid;
     grid-template-columns: 200px 1fr 240px;
-    height: 36vh;
+    height: 32vh;
     box-shadow: 0 18px 50px rgba(0,0,0,0.5);
   }
   .dashmock__panel {
@@ -429,32 +440,48 @@
   .dashmock__row .dot.blue { background: var(--blue); }
   .dashmock__row .dot.emerald { background: var(--emerald); opacity: 0.7; }
   .dashmock__map {
-    background:
-      radial-gradient(circle at 30% 40%, rgba(239,59,59,0.5) 0%, rgba(239,59,59,0.1) 4%, transparent 7%),
-      radial-gradient(circle at 60% 30%, rgba(245,158,11,0.5) 0%, rgba(245,158,11,0.1) 4%, transparent 7%),
-      radial-gradient(circle at 72% 62%, rgba(16,185,129,0.6) 0%, transparent 4%),
-      radial-gradient(circle at 25% 65%, rgba(16,185,129,0.6) 0%, transparent 4%),
-      radial-gradient(circle at 48% 55%, rgba(96,165,250,0.5) 0%, rgba(96,165,250,0.1) 4%, transparent 7%),
-      linear-gradient(135deg, #0c0c14 0%, #14141d 100%);
     position: relative;
+    background: #0c0c14;
+    overflow: hidden;
+  }
+  .dashmock__map img.dashmock__tile {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    /* The Carto tile is bright-ish; tone it to match the deck's dark feel. */
+    filter: brightness(0.9) contrast(1.05);
+  }
+  .dashmock__map svg.dashmock__svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    pointer-events: none;
   }
   .dashmock__map::before {
     content: 'PORT HARCOURT LGA';
     position: absolute;
-    top: 12px; left: 14px;
+    top: 10px; left: 12px;
     font-size: 9px;
     letter-spacing: 0.22em;
     color: var(--fg-mute);
     font-family: var(--mono);
+    z-index: 2;
   }
   .dashmock__map::after {
     content: 'LIVE';
     position: absolute;
-    top: 12px; right: 14px;
+    top: 10px; right: 12px;
     font-size: 9px;
     letter-spacing: 0.22em;
     color: var(--emerald);
     font-family: var(--mono);
+    z-index: 2;
   }
   .dashmock__quote {
     background: rgba(239,59,59,0.06);
@@ -704,11 +731,13 @@
       background-color: var(--bg) !important;
     }
     .slide.slide--image {
-      /* Intro/outro images: zero padding, image fills the full page. */
+      /* Intro/outro images: zero padding, the <img> child fills the page. */
       padding: 0 !important;
-      background-size: cover !important;
-      background-position: center !important;
-      background-repeat: no-repeat !important;
+    }
+    .slide--image img.slide__art {
+      width: 1280px !important;
+      height: 720px !important;
+      object-fit: cover !important;
     }
     .slide:last-child { page-break-after: auto !important; break-after: auto !important; }
     .nav, .nav__hint { display: none !important; }
@@ -1013,12 +1042,9 @@
 <div class="deck" id="deck">
 
   <!-- ===== SLIDE 1 - INTRO IMAGE ===== -->
-  <section
-    class="slide slide--active slide--image"
-    data-slide="intro"
-    style="background-image: url('begin-resq.png');"
-    aria-label="ResQ intro"
-  ></section>
+  <section class="slide slide--active slide--image" data-slide="intro" aria-label="ResQ intro">
+    <img class="slide__art" src="begin-resq.png" alt="ResQ" />
+  </section>
 
   <!-- ===== SLIDE 2 - TITLE ===== -->
   <section class="slide" data-slide="1">
@@ -1277,7 +1303,8 @@
       <div class="brand"><svg class="icon"><use href="#i-siren"/></svg> ResQ</div>
       <div class="num">07 / 12</div>
     </header>
-    <div class="body">
+
+    <div class="body" style="justify-content: flex-start; padding-top: 96px;">
       <div class="eyebrow">The Coordinator Dashboard</div>
       <h2>The government's <span class="hl">single screen</span>.</h2>
       <div class="dashmock">
@@ -1288,7 +1315,58 @@
           <div class="dashmock__row"><strong><span class="dot blue"></span>Accident · High</strong>Eleme Junction</div>
           <div class="dashmock__row"><strong><span class="dot emerald"></span>Medical · Resolved</strong>Borokiri · audit OK</div>
         </div>
-        <div class="dashmock__map"></div>
+        <div class="dashmock__map">
+          <!-- Real Carto dark-matter raster tile covering Port Harcourt at zoom 10 -->
+          <img class="dashmock__tile" src="dashboard-map.png" alt="Port Harcourt" />
+          <!-- Overlay: only the pins, responders, and match lines on top of the real map -->
+          <svg class="dashmock__svg" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+            <!-- Match lines (responder → incident), dashed -->
+            <g stroke-dasharray="5,4" fill="none" opacity="0.85">
+              <path d="M 320,200 L 380,240" stroke="#ef3b3b" stroke-width="2"/>
+              <path d="M 320,200 L 280,260" stroke="#ef3b3b" stroke-width="2"/>
+              <path d="M 540,180 L 590,220" stroke="#f59e0b" stroke-width="2"/>
+              <path d="M 540,180 L 500,230" stroke="#f59e0b" stroke-width="2"/>
+              <path d="M 620,330 L 670,290" stroke="#60a5fa" stroke-width="2"/>
+            </g>
+
+            <!-- Incident pins (color = type, with pulsing halo for critical) -->
+            <g transform="translate(320,200)">
+              <circle r="22" fill="rgba(239,59,59,0.16)"/>
+              <circle r="12" fill="rgba(239,59,59,0.32)"/>
+              <circle r="7" fill="#ef3b3b" stroke="white" stroke-width="2.5"/>
+            </g>
+            <g transform="translate(540,180)">
+              <circle r="18" fill="rgba(245,158,11,0.18)"/>
+              <circle r="7" fill="#f59e0b" stroke="white" stroke-width="2.5"/>
+            </g>
+            <g transform="translate(620,330)">
+              <circle r="18" fill="rgba(96,165,250,0.18)"/>
+              <circle r="7" fill="#60a5fa" stroke="white" stroke-width="2.5"/>
+            </g>
+            <g transform="translate(180,410)" opacity="0.55">
+              <circle r="6" fill="#10b981" stroke="white" stroke-width="2"/>
+            </g>
+
+            <!-- Responder diamonds (green = available) -->
+            <g fill="#10b981" stroke="white" stroke-width="1.6">
+              <rect x="-5.5" y="-5.5" width="11" height="11" transform="translate(380,240) rotate(45)"/>
+              <rect x="-5.5" y="-5.5" width="11" height="11" transform="translate(280,260) rotate(45)"/>
+              <rect x="-5.5" y="-5.5" width="11" height="11" transform="translate(590,220) rotate(45)"/>
+              <rect x="-5.5" y="-5.5" width="11" height="11" transform="translate(500,230) rotate(45)"/>
+              <rect x="-5.5" y="-5.5" width="11" height="11" transform="translate(670,290) rotate(45)"/>
+              <rect x="-5.5" y="-5.5" width="11" height="11" transform="translate(440,360) rotate(45)"/>
+            </g>
+
+            <!-- Scale bar bottom-left for credibility -->
+            <g transform="translate(18,478)" font-family="ui-monospace, Menlo, monospace" font-size="9" fill="#a0a0b0">
+              <rect x="-6" y="-10" width="80" height="20" fill="rgba(10,10,16,0.7)" rx="2"/>
+              <line x1="0" y1="0" x2="60" y2="0" stroke="#c0c0d0" stroke-width="1.2"/>
+              <line x1="0" y1="-3" x2="0" y2="3" stroke="#c0c0d0" stroke-width="1.2"/>
+              <line x1="60" y1="-3" x2="60" y2="3" stroke="#c0c0d0" stroke-width="1.2"/>
+              <text x="0" y="-6" letter-spacing="1.4" font-weight="700">5 KM</text>
+            </g>
+          </svg>
+        </div>
         <div class="dashmock__panel">
           <div class="dashmock__title">Incident Detail</div>
           <div style="font-size:10px;color:var(--fg-mute);font-family:var(--mono)">Caller +234 801 ••• ••67</div>
@@ -1298,18 +1376,18 @@
           <div class="dashmock__row" style="margin-top:6px;"><strong>Status</strong>Active → Resolve</div>
         </div>
       </div>
-      <div class="keys cols-3">
-        <div class="key tone-blue">
+      <div class="keys cols-3" style="margin-top: 16px;">
+        <div class="key tone-blue" style="padding: 12px 14px;">
           <span class="key-icon"><svg class="icon"><use href="#i-dashboard"/></svg></span>
-          <div><h4>One screen per LGA</h4><p>Every incident, every responder, every state change.</p></div>
+          <div><h4 style="font-size: 15px;">One screen per LGA</h4><p style="font-size: 12.5px;">Every incident, every responder, every state change.</p></div>
         </div>
-        <div class="key tone-emerald">
+        <div class="key tone-emerald" style="padding: 12px 14px;">
           <span class="key-icon"><svg class="icon"><use href="#i-history"/></svg></span>
-          <div><h4>Immutable audit trail</h4><p>Every transition timestamped. It cannot be edited.</p></div>
+          <div><h4 style="font-size: 15px;">Immutable audit trail</h4><p style="font-size: 12.5px;">Every transition timestamped. It cannot be edited.</p></div>
         </div>
-        <div class="key tone-orange">
+        <div class="key tone-orange" style="padding: 12px 14px;">
           <span class="key-icon"><svg class="icon"><use href="#i-gauge"/></svg></span>
-          <div><h4>Response-time metrics</h4><p>Public accountability by LGA, by month.</p></div>
+          <div><h4 style="font-size: 15px;">Response-time metrics</h4><p style="font-size: 12.5px;">Public accountability by LGA, by month.</p></div>
         </div>
       </div>
       <div class="notes">Speaker B · 55s. Slow down on "auditable". That is the govtech line.</div>
@@ -1522,12 +1600,9 @@
   </section>
 
   <!-- ===== OUTRO IMAGE ===== -->
-  <section
-    class="slide slide--image"
-    data-slide="outro"
-    style="background-image: url('end-resq.png');"
-    aria-label="ResQ outro"
-  ></section>
+  <section class="slide slide--image" data-slide="outro" aria-label="ResQ outro">
+    <img class="slide__art" src="end-resq.png" alt="ResQ" />
+  </section>
 
 </div>
 

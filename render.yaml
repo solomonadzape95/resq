@@ -36,12 +36,18 @@ services:
     # Prisma client is generated twice for belt-and-suspenders: once by
     # @resq/api's postinstall, and again at the start of `pnpm build`.
     # Either alone has historically been flaky under pnpm + turbo on CI.
+    #
+    # Note: don't `corepack enable` — Render's Node images ship pnpm at
+    # /opt/render/.local/share/pnpm and the build container's /usr/bin
+    # is read-only, so corepack errors with EROFS.
     buildCommand: |
-      corepack enable &&
       pnpm install --frozen-lockfile &&
       pnpm --filter @resq/api build
-    preDeployCommand: pnpm --filter @resq/api exec prisma migrate deploy
-    startCommand: pnpm --filter @resq/api start
+    # `preDeployCommand` is paid-plan only on Render, so the migration
+    # runs as part of the start command instead. `prisma migrate deploy`
+    # is idempotent — it only applies new migrations, so re-running on
+    # every boot adds ~1s and is safe.
+    startCommand: pnpm --filter @resq/api exec prisma migrate deploy && pnpm --filter @resq/api start
     healthCheckPath: /
     autoDeploy: true
     envVars:
@@ -107,7 +113,6 @@ services:
     region: oregon
     rootDir: .
     buildCommand: |
-      corepack enable &&
       pnpm install --frozen-lockfile &&
       pnpm --filter @resq/web build
     # next start honours $PORT, which Render injects.
