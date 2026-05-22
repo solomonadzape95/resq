@@ -1,0 +1,208 @@
+================================================================================
+ ResQ — Presentation Brief
+ 11 slides · ~6:45 total · 2 presenters
+================================================================================
+
+PRESENTATION OUTLINE
+================================================================================
+
+  #   Slide                       Speaker   Time    Purpose
+  --  --------------------------  --------  ------  ---------------------------
+  1   Title & Hook                A         0:25    Plant the tagline.
+  2   The Problem                 A         0:40    Why 112 fails most Nigerians.
+  3   What ResQ Is                A         0:40    One-line solution + 3-actor
+                                                    triangle.
+  4   How a Call Happens          A         0:50    USSD callback vs voicemail
+                                                    flow.
+  5   AI in the Loop              A         0:35    Triage, location extraction,
+                                                    urgency signals.
+  --  HANDOFF (A nods to B)
+  6   Auto-Dispatch               B         0:40    Match nearest 5 verified
+                                                    responders, first to accept.
+  7   Coordinator Dashboard       B         0:55    The govtech screen — live
+                                                    map, audit trail.
+  8   Why This Is GovTech         B         0:45    Universal access ·
+                                                    accountability · 774 LGAs ·
+                                                    public asset.
+  9   The Responder Network       B         0:45    Who they are + recruitment
+                                                    + monthly stipend.
+  10  Built vs Phase 2            B         0:25    Engine works; rest is
+                                                    paperwork.
+  11  The Ask + Close             B         0:25    License shortcode, 90-day
+                                                    pilot, publish numbers,
+                                                    tagline.
+
+  Presenter A  (0:00 – 3:10) — the story arc.
+  Presenter B  (3:10 – 6:45) — the govtech surface + ask.
+
+  Stage prop: hold a feature phone for the entire pitch.
+  Slow down on the audit trail line (slide 7) — that is the govtech moment.
+  End on the tagline. Walk off.
+
+
+================================================================================
+APP FEATURES — WHAT'S ACTUALLY BUILT
+================================================================================
+
+CALLER PATHS
+------------------------------------------------------------
+  • USSD dialer at /simulator — dial *384*1#, pick emergency type,
+    Africa's-Talking-compatible body shape.
+  • 3-second auto-callback after a USSD report — the system rings the
+    same caller's simulator session.
+  • Inbound-call overlay with shaking ring animation, Answer / Decline.
+  • Voicemail mode — direct call from /simulator?mode=call opens an
+    ElevenLabs voice session that stays silent and records.
+  • Voicemail attaches to existing incident when the same caller has an
+    open USSD report (no duplicates); otherwise creates a fresh
+    source: voice incident.
+  • Both paths end at the same dashboard with the same AI extraction
+    and dispatch pipeline.
+
+AI / INTELLIGENCE LAYER
+------------------------------------------------------------
+  • AI triage (Claude via OpenRouter) — severity 1–10, recommended
+    responder count, priority reason.
+  • AI location extraction from natural-speech transcript — pulls
+    location_text, map_search_query, victim details, urgency signals,
+    landmarks.
+  • Nominatim geocoding (free, no API key) — converts the extracted
+    text into lat/lng so the map pin actually moves.
+  • Silent ElevenLabs voicemail agent — firstMessage blank, records
+    caller monologue, posts transcript via HMAC-signed webhook.
+  • Pidgin / English friendly — no language gate in the prompts.
+
+RESPONDER & DISPATCH
+------------------------------------------------------------
+  • Skill-tagged matcher:
+      medical  -> doctor / nurse / paramedic / first_aider
+      fire     -> fire_warden / security / civil_defence
+      crime    -> security / police_liaison
+      accident -> paramedic / doctor / traffic_warden
+  • Haversine distance ranking within each responder's
+    availabilityRadiusKm.
+  • Push-to-nearest-five simultaneously via Socket.io; first to accept
+    wins, others held as backup.
+  • Live responder GPS heartbeat endpoint with dashboard broadcast.
+  • Responder mobile view at /r/[id] — accept, decline, en-route,
+    on-scene, resolved.
+  • Public responder registration at /responders/register with skill
+    multi-select and availability-radius slider.
+
+COORDINATOR DASHBOARD
+------------------------------------------------------------
+  • Live map on Carto dark-matter vector tiles (free, no key),
+    auto-fits bounds to placed incidents.
+  • Status-aware incident markers:
+      new           pulsing outer ring
+      triaged       solid dot
+      assigned      dashed ring
+      active        solid double ring
+      resolved      greyed out with check
+      false_alarm   greyed out with cross
+      cancelled     greyed out with cross
+  • Responder pins — diamond shape, colour by status
+    (green available · amber busy · grey off-duty), toggleable layer
+    filter.
+  • Match lines — dashed GeoJSON line + soft glow from each assigned
+    responder to their incident, coloured by incident type.
+  • Selection focus mode — clicking an incident dims unrelated markers
+    and lines.
+  • Click marker -> popup card with type, status badge, caller, triage
+    score, time, "Open details".
+  • Incident list panel with coloured status pills and severity tags.
+  • Side panel: caller info, location, auto-scrolling live transcript,
+    assigned responders list.
+  • Workflow card — primary status-advancement button + secondary
+    off-ramp (e.g., new -> triaged + Cancel).
+  • Ring caller button — coordinator manually re-rings the caller's
+    simulator session via POST /alerts/:id/ring.
+  • Header tally — live socket pill, open count, critical / high
+    severity pills, available-responder count.
+
+BACKEND / INFRASTRUCTURE
+------------------------------------------------------------
+  • Express + Socket.io API on Node 20 + TypeScript.
+  • PostgreSQL via Prisma — User, Incident, Responder,
+    IncidentResponder, Call, UssdSession.
+  • 7 incident statuses (new, triaged, assigned, active, resolved,
+    false_alarm, cancelled) with timestamped transitions —
+    immutable audit trail.
+  • 5 incident sources (ussd, app, web, sms, voice).
+  • JWT + bcrypt auth (register / login endpoints; UI gating deferred
+    for the demo).
+  • HMAC-verified webhooks for ElevenLabs (raw-body capture in Express).
+  • Africa's Talking integration for SMS + outbound voice (graceful
+    skip when keys absent).
+  • Typed Socket.io events shared between API and web via the
+    @resq/shared workspace package — coordinator, incident, responder,
+    and per-phone rooms.
+  • Idempotent seed — wipes incidents / calls / sessions, reseeds 12
+    varied Port Harcourt scenarios across all type / status combos.
+  • db:reset script for full database rebuild.
+
+PUBLIC SITE / UX POLISH
+------------------------------------------------------------
+  • Landing page with USSD quick-dial cards that deep-link into the
+    simulator.
+  • Blocky dark UI — sharp edges, heavier borders, left-red accents,
+    ring-shake / pulse / fade-up keyframes.
+  • Microinteractions — .btn-press scale-on-click, .row-hover row
+    accents, animated incoming-call ring.
+  • Mobile-responsive responder view; phone-frame mock for the
+    simulator.
+  • Three personas, three surfaces — landing (citizen), dashboard
+    (coordinator), /r/[id] (responder).
+
+DELIBERATELY PHASE 2 (NOT BUILT YET — DON'T DEMO)
+------------------------------------------------------------
+  • NCC-licensed national shortcode (paperwork, not engineering).
+  • MTN / Airtel cell-tower triangulation MOU.
+  • State SEMA integrations.
+  • Native iOS / Android apps (the web simulator stands in today).
+  • Public response-time analytics dashboard.
+
+
+================================================================================
+GOVTECH ANCHOR PHRASES (read before stage time)
+================================================================================
+
+  Each of these must land at least once in the deck — they are why
+  the audience walks away thinking "public infrastructure" instead of
+  "startup":
+
+      • public infrastructure                  (slides 3, 8)
+      • government coordinator                 (slides 1, 3, 7)
+      • LGA / 774 LGAs                         (slides 7, 8)
+      • immutable audit trail                  (slides 7, 8)
+      • publish the numbers vs 112             (slide 11)
+      • the cheapest phone in the country      (slide 8)
+      • NYSC / FRSC / SEMA                     (slides 2, 9, 10)
+
+
+================================================================================
+RESPONDER STIPEND — STAGE LINE (qualitative, no naira figures)
+================================================================================
+
+  "A modest monthly stipend, weighted by verified response activity.
+   Performance-aligned. Not volunteer burnout — a part-time public
+   service, paid for the value they provide."
+
+  If a judge asks "how much?":
+  "We're modelling stipends against the average part-time wage in each
+   state — finalising with the SEMA partner before pilot. Designed to
+   be less than the cost of a single ambulance dispatch per responder
+   per month."
+
+
+================================================================================
+FILES TO REFERENCE
+================================================================================
+
+  PITCH.html               Projector-ready slide deck (open in browser).
+                           Cmd-P -> Save as PDF to refresh the slides PDF.
+  PITCH.md                 Per-slide speaker notes + cheat sheet + Q&A.
+  PRESENTATION_BRIEF.txt   This file. Distributable plain-text summary.
+  README.md                Setup + how to run the deck.
+
+  ResQ — because every second counts.

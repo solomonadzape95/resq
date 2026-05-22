@@ -43,6 +43,10 @@ export interface IncidentMapProps {
   showResponders: boolean;
   selectedId: string | null;
   onSelect: (id: string) => void;
+  /** Initial view centre and zoom. Used when the dashboard tells the map
+   *  which city is being coordinated so it doesn't default to Port Harcourt
+   *  every time. Falls back to PH centre when omitted. */
+  centre?: { lat: number; lng: number; zoom: number };
 }
 
 export function IncidentMap({
@@ -51,6 +55,7 @@ export function IncidentMap({
   showResponders,
   selectedId,
   onSelect,
+  centre,
 }: IncidentMapProps) {
   const mapRef = useRef<MapRef | null>(null);
   const [popupId, setPopupId] = useState<string | null>(null);
@@ -141,9 +146,9 @@ export function IncidentMap({
       }}
       mapLib={maplibregl as never}
       initialViewState={{
-        longitude: DEFAULT_CENTRE.lng,
-        latitude: DEFAULT_CENTRE.lat,
-        zoom: DEFAULT_CENTRE.zoom,
+        longitude: centre?.lng ?? DEFAULT_CENTRE.lng,
+        latitude: centre?.lat ?? DEFAULT_CENTRE.lat,
+        zoom: centre?.zoom ?? DEFAULT_CENTRE.zoom,
       }}
       style={{ width: "100%", height: "100%" }}
       mapStyle={MAP_STYLE as never}

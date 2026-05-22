@@ -16,6 +16,9 @@ export default function HomePage() {
           <span className="text-xl font-bold tracking-tight">ResQ</span>
         </div>
         <nav className="flex items-center gap-6 text-sm text-neutral-300">
+          <Link href="/demo" className="btn-press hover:text-white">
+            Live demo
+          </Link>
           <Link href="/simulator" className="btn-press hover:text-white">
             Phone simulator
           </Link>

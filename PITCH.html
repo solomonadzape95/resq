@@ -3,785 +3,1530 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>ResQ — Hackathon Pitch Overview</title>
+<title>ResQ Pitch Deck</title>
 <style>
+  /* ---- TOKENS ----------------------------------------------------------- */
   :root {
-    --bg:        #0a0a0b;
-    --bg-soft:   #131316;
-    --bg-card:   #17171c;
-    --border:    #26262d;
-    --border-2:  #34343d;
-    --fg:        #f4f4f6;
-    --fg-soft:   #c8c8d0;
-    --fg-mute:   #8a8a93;
+    --bg:        #07070a;
+    --bg-soft:   #0e0e13;
+    --bg-card:   #131318;
+    --bg-elev:   #17171e;
+    --border:    #2a2a33;
+    --border-2:  #3a3a47;
+    --fg:        #ffffff;
+    --fg-soft:   #d6d6df;
+    --fg-mute:   #82828d;
     --red:       #ef3b3b;
-    --red-soft:  #ff6b6b;
+    --red-soft:  #ff7474;
+    --red-glow:  rgba(239, 59, 59, 0.12);
     --orange:    #f59e0b;
-    --blue:      #3b82f6;
-    --green:     #22c55e;
-    --mono:      ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
-    --sans:      -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+    --emerald:   #10b981;
+    --blue:      #60a5fa;
+    --violet:    #a78bfa;
+    --teal:      #2dd4bf;
+    --yellow:    #facc15;
+    --sans:      "Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --mono:      "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
   }
-  * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-  body {
-    margin: 0;
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
     background: var(--bg);
     color: var(--fg);
     font-family: var(--sans);
-    line-height: 1.65;
-    font-size: 16px;
+    line-height: 1.45;
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
-  .wrap {
-    max-width: 980px;
-    margin: 0 auto;
-    padding: 56px 28px 96px;
+  body { overflow: hidden; }
+
+  /* Force color preservation in print/PDF */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* ---- DECK ------------------------------------------------------------- */
+  .deck { width: 100vw; height: 100vh; position: relative; }
+  .slide {
+    position: absolute; inset: 0;
+    display: none;
+    flex-direction: column;
+    padding: 5.5vh 7vw 5vh;
+    background: var(--bg);
+    overflow: hidden;
+  }
+  .slide--active { display: flex; }
+
+  /* Giant slide-number watermark sitting behind the content. Sets the
+     visual rhythm across the deck without competing with what's on top. */
+  .slide__watermark {
+    position: absolute;
+    top: 50%; right: 3vw;
+    transform: translateY(-50%);
+    font-family: var(--mono);
+    font-size: clamp(300px, 46vw, 680px);
+    color: rgba(239, 59, 59, 0.06);
+    font-weight: 800;
+    line-height: 1;
+    pointer-events: none;
+    letter-spacing: -0.06em;
+    z-index: 0;
+    user-select: none;
   }
 
   /* HEADER */
-  .hero {
-    text-align: center;
-    padding: 24px 0 48px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 48px;
-  }
-  .hero .badge {
-    display: inline-block;
-    font-size: 11px;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: var(--red-soft);
-    padding: 6px 12px;
-    border: 1px solid rgba(239,59,59,0.35);
-    border-radius: 999px;
-    margin-bottom: 18px;
-  }
-  .hero h1 {
-    font-size: 48px;
-    line-height: 1.05;
-    margin: 0 0 14px;
-    letter-spacing: -0.02em;
-  }
-  .hero .tag {
-    font-style: italic;
-    font-size: 20px;
-    color: var(--fg-soft);
-    margin: 0;
-  }
-  .hero .sub {
+  .head {
+    display: flex; justify-content: space-between; align-items: center;
     color: var(--fg-mute);
-    margin-top: 10px;
-    font-size: 15px;
-  }
-
-  /* TYPOGRAPHY */
-  h2 {
-    font-size: 30px;
-    letter-spacing: -0.01em;
-    margin: 56px 0 16px;
-    padding-top: 22px;
-    border-top: 1px solid var(--border);
-  }
-  h2 .num {
-    color: var(--red);
-    margin-right: 10px;
-    font-variant-numeric: tabular-nums;
-  }
-  h3 {
-    font-size: 19px;
-    margin: 28px 0 10px;
-    color: var(--fg);
-  }
-  p { margin: 12px 0; color: var(--fg-soft); }
-  strong { color: var(--fg); }
-  em { color: var(--fg); }
-  a { color: var(--red-soft); text-decoration: none; }
-  a:hover { text-decoration: underline; }
-
-  /* PUNCHLINES */
-  .punchline {
-    background: linear-gradient(180deg, rgba(239,59,59,0.08), rgba(239,59,59,0.02));
-    border: 1px solid rgba(239,59,59,0.35);
-    border-left: 4px solid var(--red);
-    border-radius: 10px;
-    padding: 14px 18px;
-    margin: 16px 0 22px;
-    color: var(--fg);
-    font-size: 16px;
-  }
-  .punchline b {
-    color: var(--red-soft);
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
     font-size: 11px;
-    display: block;
-    margin-bottom: 6px;
-  }
-  .punchline i { font-weight: 500; }
-
-  /* QUOTES (longer narrated lines) */
-  blockquote {
-    border-left: 3px solid var(--border-2);
-    background: var(--bg-soft);
-    margin: 18px 0;
-    padding: 14px 20px;
-    color: var(--fg-soft);
-    border-radius: 0 8px 8px 0;
-  }
-  blockquote em { color: var(--fg); font-style: italic; }
-  blockquote strong { color: var(--red-soft); }
-  blockquote.layman {
-    border-left-color: var(--red);
-    background: rgba(239,59,59,0.05);
-  }
-  blockquote.layman::before {
-    content: "💬 LAYMAN LINE";
-    display: block;
-    font-size: 10px;
     letter-spacing: 0.18em;
+    text-transform: uppercase;
+    z-index: 1;
+  }
+  .head .brand {
+    display: flex; align-items: center; gap: 10px;
     color: var(--red-soft);
-    margin-bottom: 6px;
+    font-weight: 700;
+  }
+  .head .brand .icon { width: 16px; height: 16px; }
+  .head .num { font-family: var(--mono); color: var(--fg-mute); }
+
+  .body {
+    flex: 1;
+    display: flex; flex-direction: column;
+    justify-content: center;
+    z-index: 1;
+    position: relative;
   }
 
-  /* ASCII / CODE blocks */
-  pre {
-    background: #08080a;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 18px;
-    overflow-x: auto;
-    font-family: var(--mono);
-    font-size: 13px;
-    line-height: 1.45;
-    color: #d7d7df;
+  /* ---- TYPOGRAPHY ------------------------------------------------------- */
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 12px;
+    color: var(--red-soft);
+    font-size: 12px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 22px;
   }
-  code {
-    font-family: var(--mono);
-    font-size: 0.92em;
-    background: #1d1d22;
-    color: #e8e8ee;
-    padding: 1px 6px;
-    border-radius: 4px;
+  .eyebrow::before {
+    content: '';
+    width: 32px; height: 1px;
+    background: var(--red);
   }
-  pre code { background: transparent; padding: 0; }
+  h1.hero {
+    font-size: clamp(96px, 11vw, 180px);
+    font-weight: 900;
+    line-height: 0.9;
+    letter-spacing: -0.045em;
+  }
+  h1.hero .res { color: var(--red); }
+  h1.hero .qmark { color: var(--fg); }
+  h2 {
+    font-size: clamp(40px, 4.2vw, 72px);
+    font-weight: 800;
+    line-height: 1.04;
+    letter-spacing: -0.026em;
+    max-width: 22ch;
+  }
+  /* Slide 7's headline ("The government's single screen.") is too long to
+     fit max-width 22ch on a single line — give it room to breathe instead
+     of breaking after "single". */
+  .slide[data-slide="7"] h2 { max-width: 32ch; }
+  h2 .hl { color: var(--red); }
+  .sub {
+    margin-top: 20px;
+    font-size: clamp(19px, 1.75vw, 26px);
+    color: var(--fg-soft);
+    max-width: 64ch;
+    line-height: 1.5;
+  }
+  .sub.lead {
+    font-size: clamp(26px, 2.5vw, 38px);
+    color: var(--fg);
+    line-height: 1.32;
+    max-width: 26ch;
+  }
+  .tagline {
+    margin-top: 28px;
+    font-size: clamp(26px, 2.8vw, 42px);
+    font-style: italic;
+    color: var(--fg);
+    font-weight: 500;
+    letter-spacing: -0.005em;
+  }
+  .tagline strong { font-weight: 700; }
 
-  /* TABLES */
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 18px 0;
-    font-size: 14.5px;
+  /* ---- CARDS (numbered, no accent border) ------------------------------ */
+  .cards {
+    display: grid;
+    gap: 18px;
+    margin-top: 36px;
+  }
+  .cards.cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .cards.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .cards.cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+  .card {
     background: var(--bg-card);
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: 6px;
+    padding: 26px 28px;
+    display: flex; flex-direction: column;
+    gap: 14px;
+  }
+  .card__head {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 2px;
+  }
+  .card__num {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--fg-mute);
+    font-weight: 600;
+  }
+  .card__icon {
+    color: var(--red-soft);
+    display: inline-flex;
+  }
+  .card__icon .icon { width: 32px; height: 32px; stroke-width: 1.6; }
+  .card h3 {
+    font-size: clamp(20px, 1.7vw, 28px);
+    color: var(--fg);
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    line-height: 1.18;
+  }
+  .card p {
+    font-size: clamp(15px, 1.2vw, 18px);
+    color: var(--fg-mute);
+    line-height: 1.55;
+  }
+  .card__num { font-size: 13px; }
+  /* Tone variants only re-tint the icon and number */
+  .card.tone-emerald .card__icon { color: var(--emerald); }
+  .card.tone-blue    .card__icon { color: var(--blue); }
+  .card.tone-orange  .card__icon { color: var(--orange); }
+  .card.tone-violet  .card__icon { color: var(--violet); }
+  .card.tone-teal    .card__icon { color: var(--teal); }
+  .card.tone-yellow  .card__icon { color: var(--yellow); }
+
+  /* ---- FLOW DIAGRAM (no accent borders; icon carries color) ------------ */
+  .flow {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+    gap: 14px;
+    align-items: stretch;
+    margin-top: 40px;
+  }
+  .flow .arrow {
+    align-self: center;
+    color: var(--border-2);
+    font-size: 24px;
+    font-weight: 300;
+  }
+  .flow .step {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px 18px;
+    display: flex; flex-direction: column; gap: 10px;
+    min-height: 140px;
+  }
+  .flow .step .step-num {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    color: var(--fg-mute);
+    font-weight: 600;
+  }
+  .flow .step .step-icon { color: var(--red-soft); }
+  .flow .step .step-icon .icon { width: 30px; height: 30px; stroke-width: 1.6; }
+  .flow .step h4 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--fg);
+  }
+  .flow .step p { font-size: 14px; color: var(--fg-mute); line-height: 1.5; }
+
+  /* ---- TWO-COLUMN ------------------------------------------------------- */
+  .cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+    margin-top: 36px;
+  }
+  .col {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 28px;
+  }
+  .col__head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .col__title {
+    display: flex; align-items: center; gap: 10px;
+    color: var(--red-soft);
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+  .col__title .icon { width: 16px; height: 16px; }
+  .col__num {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--fg-mute);
+    font-weight: 600;
+  }
+  .col.tone-emerald .col__title { color: var(--emerald); }
+  .col ul { list-style: none; }
+  .col li {
+    display: flex; gap: 14px; align-items: flex-start;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+    color: var(--fg-soft);
+    font-size: 16.5px;
+    line-height: 1.5;
+  }
+  .col li:last-child { border-bottom: 0; }
+  .col li .icon { width: 20px; height: 20px; flex-shrink: 0; margin-top: 2px; color: var(--red-soft); }
+  .col.tone-emerald li .icon { color: var(--emerald); }
+  .col li strong { color: var(--fg); }
+
+  /* ---- ACTOR TRIANGLE --------------------------------------------------- */
+  .triangle {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 22px;
+    margin-top: 44px;
+  }
+  .actor {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 36px 24px;
+    text-align: center;
+  }
+  .actor .icon-circle {
+    width: 88px; height: 88px;
+    background: var(--red-glow);
+    border-radius: 50%;
+    color: var(--red-soft);
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-bottom: 26px;
+  }
+  .actor .icon-circle .icon { width: 44px; height: 44px; stroke-width: 1.6; }
+  .actor h3 { font-size: 26px; font-weight: 700; color: var(--fg); letter-spacing: -0.01em; }
+  .actor p { font-size: 16px; color: var(--fg-mute); margin-top: 10px; line-height: 1.5; }
+  .actor.tone-emerald .icon-circle {
+    background: rgba(16,185,129,0.12);
+    color: var(--emerald);
+  }
+  .actor.tone-blue .icon-circle {
+    background: rgba(96,165,250,0.12);
+    color: var(--blue);
+  }
+
+  /* ---- QUOTE ------------------------------------------------------------ */
+  .quote {
+    margin-top: 32px;
+    padding: 26px 38px;
+    background: rgba(239, 59, 59, 0.06);
+    border-radius: 6px;
+    font-style: italic;
+    color: var(--fg);
+    font-size: clamp(20px, 1.85vw, 26px);
+    line-height: 1.5;
+    max-width: 80%;
+    position: relative;
+  }
+  .quote::before {
+    content: '\201C';
+    position: absolute;
+    top: 6px; left: 14px;
+    font-size: 72px;
+    line-height: 1;
+    color: rgba(239,59,59,0.28);
+    font-style: normal;
+    font-family: Georgia, serif;
+  }
+  .quote-meta {
+    margin-top: 16px;
+    color: var(--fg-mute);
+    font-size: 16.5px;
+    max-width: 80%;
+    line-height: 1.5;
+  }
+  .quote-meta strong { color: var(--fg); font-weight: 700; }
+
+  /* ---- DASHBOARD MOCK --------------------------------------------------- */
+  .dashmock {
+    margin-top: 34px;
+    border: 1px solid var(--border);
+    background: #0a0a10;
+    border-radius: 6px;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 200px 1fr 240px;
+    height: 36vh;
+    box-shadow: 0 18px 50px rgba(0,0,0,0.5);
+  }
+  .dashmock__panel {
+    border-right: 1px solid var(--border);
+    padding: 14px 12px;
+    display: flex; flex-direction: column; gap: 8px;
     overflow: hidden;
   }
-  th, td {
-    border-bottom: 1px solid var(--border);
-    padding: 12px 14px;
-    text-align: left;
-    vertical-align: top;
-    color: var(--fg-soft);
-  }
-  th {
-    background: #1c1c22;
-    color: var(--fg);
-    font-weight: 600;
-    font-size: 13px;
+  .dashmock__panel:last-child { border-right: 0; }
+  .dashmock__title {
+    font-size: 9px;
+    letter-spacing: 0.22em;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    color: var(--fg-mute);
+    font-weight: 700;
+    margin-bottom: 4px;
   }
-  tr:last-child td { border-bottom: none; }
-  table strong { color: var(--fg); }
-
-  /* LISTS */
-  ul, ol {
-    padding-left: 22px;
-    color: var(--fg-soft);
-  }
-  li { margin: 6px 0; }
-  li::marker { color: var(--red); }
-
-  /* CALLOUT CARDS for the "3-actor" intro */
-  .actors {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
-    margin: 22px 0;
-  }
-  .actor-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px;
-    text-align: center;
-  }
-  .actor-card .icon { font-size: 28px; }
-  .actor-card h4 {
-    margin: 8px 0 4px;
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--red-soft);
-  }
-  .actor-card p { margin: 0; font-size: 13.5px; }
-
-  /* LAYER PILLS */
-  .layer-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 4px 10px;
-    border-radius: 999px;
+  .dashmock__row {
+    padding: 8px 10px;
+    background: rgba(255,255,255,0.02);
+    border-radius: 2px;
     font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    background: rgba(239,59,59,0.12);
-    color: var(--red-soft);
-    border: 1px solid rgba(239,59,59,0.35);
+    color: var(--fg-soft);
+    line-height: 1.4;
   }
-
-  /* TOC */
-  nav.toc {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 18px 22px;
-    margin-bottom: 32px;
+  .dashmock__row strong { color: var(--fg); display: block; font-size: 12px; }
+  .dashmock__row .dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: 1px;
   }
-  nav.toc h3 {
-    margin: 0 0 12px;
-    font-size: 12px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
+  .dashmock__row .dot.red { background: var(--red); }
+  .dashmock__row .dot.orange { background: var(--orange); }
+  .dashmock__row .dot.blue { background: var(--blue); }
+  .dashmock__row .dot.emerald { background: var(--emerald); opacity: 0.7; }
+  .dashmock__map {
+    background:
+      radial-gradient(circle at 30% 40%, rgba(239,59,59,0.5) 0%, rgba(239,59,59,0.1) 4%, transparent 7%),
+      radial-gradient(circle at 60% 30%, rgba(245,158,11,0.5) 0%, rgba(245,158,11,0.1) 4%, transparent 7%),
+      radial-gradient(circle at 72% 62%, rgba(16,185,129,0.6) 0%, transparent 4%),
+      radial-gradient(circle at 25% 65%, rgba(16,185,129,0.6) 0%, transparent 4%),
+      radial-gradient(circle at 48% 55%, rgba(96,165,250,0.5) 0%, rgba(96,165,250,0.1) 4%, transparent 7%),
+      linear-gradient(135deg, #0c0c14 0%, #14141d 100%);
+    position: relative;
+  }
+  .dashmock__map::before {
+    content: 'PORT HARCOURT LGA';
+    position: absolute;
+    top: 12px; left: 14px;
+    font-size: 9px;
+    letter-spacing: 0.22em;
     color: var(--fg-mute);
+    font-family: var(--mono);
   }
-  nav.toc ol {
-    columns: 2;
-    column-gap: 28px;
-    padding-left: 22px;
-    margin: 0;
-    font-size: 14px;
+  .dashmock__map::after {
+    content: 'LIVE';
+    position: absolute;
+    top: 12px; right: 14px;
+    font-size: 9px;
+    letter-spacing: 0.22em;
+    color: var(--emerald);
+    font-family: var(--mono);
   }
-  nav.toc li { margin: 4px 0; break-inside: avoid; }
-  nav.toc a { color: var(--fg-soft); }
-  nav.toc a:hover { color: var(--red-soft); }
-
-  /* FOOTER */
-  footer {
-    text-align: center;
-    color: var(--fg-mute);
-    font-size: 13px;
-    margin-top: 72px;
-    padding-top: 24px;
-    border-top: 1px solid var(--border);
-  }
-  footer .tag {
+  .dashmock__quote {
+    background: rgba(239,59,59,0.06);
+    padding: 8px 10px;
+    font-size: 11px;
     font-style: italic;
     color: var(--fg-soft);
+    border-radius: 2px;
   }
 
-  /* responsive */
-  @media (max-width: 720px) {
-    .hero h1 { font-size: 34px; }
-    .hero .tag { font-size: 16px; }
-    .actors { grid-template-columns: 1fr; }
-    nav.toc ol { columns: 1; }
-    h2 { font-size: 24px; }
-    pre { font-size: 11.5px; }
-    .wrap { padding: 28px 18px 64px; }
+  /* ---- KEY ROWS (no side accent; icon carries color) ------------------- */
+  .keys {
+    display: grid;
+    gap: 14px;
+    margin-top: 26px;
+  }
+  .keys.cols-2 { grid-template-columns: 1fr 1fr; }
+  .keys.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .key {
+    display: flex; gap: 16px; align-items: flex-start;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 18px 20px;
+    background: var(--bg-card);
+  }
+  .key .key-icon {
+    color: var(--red-soft);
+    display: inline-flex;
+    flex-shrink: 0;
+    padding-top: 2px;
+  }
+  .key .key-icon .icon { width: 30px; height: 30px; stroke-width: 1.6; }
+  .key h4 { font-size: 18px; font-weight: 700; color: var(--fg); letter-spacing: -0.01em; }
+  .key p { font-size: 15px; color: var(--fg-mute); margin-top: 5px; line-height: 1.5; }
+  .key.tone-emerald .key-icon { color: var(--emerald); }
+  .key.tone-blue    .key-icon { color: var(--blue); }
+  .key.tone-orange  .key-icon { color: var(--orange); }
+  .key.tone-violet  .key-icon { color: var(--violet); }
+
+  /* ---- NETWORK BADGES (slide 4) ----------------------------------------- */
+  .networks {
+    display: flex; flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 28px;
+  }
+  .net-badge {
+    padding: 10px 20px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 14px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--fg-soft);
+    font-family: var(--mono);
+    font-weight: 600;
+  }
+  .net-badge .icon { width: 14px; height: 14px; color: var(--emerald); margin-right: 8px; vertical-align: -2px; }
+
+  .pending-note {
+    margin-top: 24px;
+    display: inline-flex; align-items: center; gap: 12px;
+    padding: 12px 18px;
+    background: rgba(245,158,11,0.06);
+    border: 1px solid rgba(245,158,11,0.25);
+    border-radius: 6px;
+    color: var(--orange);
+    font-size: 14.5px;
+    letter-spacing: 0.02em;
+    line-height: 1.45;
+  }
+  .pending-note .icon { width: 18px; height: 18px; flex-shrink: 0; }
+
+  /* "How we get your location" mini-card on slide 4 */
+  .locate-card {
+    margin-top: 22px;
+    display: flex; gap: 16px; align-items: flex-start;
+    padding: 18px 22px;
+    background: rgba(96,165,250,0.06);
+    border: 1px solid rgba(96,165,250,0.25);
+    border-radius: 6px;
+    color: var(--fg-soft);
+    font-size: 15.5px;
+    line-height: 1.5;
+    max-width: 88%;
+  }
+  .locate-card .icon { width: 26px; height: 26px; flex-shrink: 0; color: var(--blue); margin-top: 2px; }
+  .locate-card strong { color: var(--fg); font-weight: 700; }
+
+  /* ---- SDG GRID --------------------------------------------------------- */
+  .sdgs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 30px;
+  }
+  .sdg {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 18px;
+    display: flex; gap: 14px; align-items: flex-start;
+    border-top: 3px solid;
+  }
+  .sdg .icon-box {
+    width: 48px; height: 48px;
+    border-radius: 4px;
+    display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .sdg .icon-box .icon { width: 28px; height: 28px; color: #fff; }
+  .sdg .num {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--fg-mute);
+    font-weight: 700;
+  }
+  .sdg h4 { font-size: 16px; color: var(--fg); margin-top: 3px; font-weight: 700; }
+  .sdg p { font-size: 13.5px; color: var(--fg-mute); margin-top: 6px; line-height: 1.55; }
+  .sdg-3  { border-top-color: #4C9F38; } .sdg-3  .icon-box { background: #4C9F38; }
+  .sdg-9  { border-top-color: #FD6925; } .sdg-9  .icon-box { background: #FD6925; }
+  .sdg-10 { border-top-color: #DD1367; } .sdg-10 .icon-box { background: #DD1367; }
+  .sdg-11 { border-top-color: #FD9D24; } .sdg-11 .icon-box { background: #FD9D24; }
+  .sdg-16 { border-top-color: #00689D; } .sdg-16 .icon-box { background: #00689D; }
+  .sdg-17 { border-top-color: #19486A; } .sdg-17 .icon-box { background: #19486A; }
+
+  /* ---- RESPONDERS LIST -------------------------------------------------- */
+  .responders {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 28px;
+  }
+  .responder {
+    display: flex; gap: 14px; align-items: center;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 20px;
+  }
+  .responder .resp-icon {
+    color: var(--emerald);
+    display: inline-flex;
+    flex-shrink: 0;
+  }
+  .responder .resp-icon .icon { width: 28px; height: 28px; stroke-width: 1.6; }
+  .responder strong { display: block; font-size: 17px; color: var(--fg); }
+  .responder small { display: block; font-size: 12.5px; color: var(--fg-mute); margin-top: 3px; }
+
+  /* ---- FOOTNOTE --------------------------------------------------------- */
+  .footnote {
+    margin-top: 30px;
+    color: var(--fg-mute);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .footnote strong { color: var(--fg); }
+
+  /* ---- CLOSING SLIDE ---------------------------------------------------- */
+  .closing { align-items: center; justify-content: center; text-align: center; }
+  .closing h1.hero {
+    font-size: clamp(120px, 16vw, 260px);
+    font-weight: 900;
+    letter-spacing: -0.05em;
+    line-height: 0.9;
+  }
+  .closing .tagline {
+    font-size: clamp(30px, 3.4vw, 52px);
+    color: var(--fg);
+    margin-top: 30px;
+    font-style: italic;
+    font-weight: 500;
+  }
+  .closing .tagline strong { font-weight: 700; }
+
+  /* ---- NAV -------------------------------------------------------------- */
+  .nav {
+    position: fixed;
+    bottom: 18px; left: 50%;
+    transform: translateX(-50%);
+    display: flex; gap: 8px;
+    z-index: 10;
+  }
+  .nav__dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border-2);
+    cursor: pointer;
+    transition: background 120ms, transform 120ms, width 200ms;
+  }
+  .nav__dot--active {
+    background: var(--red);
+    width: 24px;
+    border-radius: 4px;
+  }
+  .nav__hint {
+    position: fixed;
+    bottom: 22px; right: 24px;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--fg-mute);
+    font-family: var(--mono);
   }
 
-  /* print */
+  /* ---- SPEAKER NOTES (hidden by default) ------------------------------- */
+  .notes {
+    display: none;
+    margin-top: 26px;
+    padding: 14px 18px;
+    border: 1px dashed var(--border-2);
+    border-radius: 4px;
+    color: var(--fg-mute);
+    font-size: 12px;
+    background: rgba(255,255,255,0.02);
+  }
+  .notes strong { color: var(--fg-soft); }
+  body.show-notes .notes { display: block; }
+
+  /* ---- PRINT ------------------------------------------------------------ */
+  /* Print target is 1280x720 (16:9 landscape). The screen layout uses vw/vh
+     clamps that are too tall when fixed to 720px, so every problem slide is
+     compressed here. Numbers below were sized so each slide ends at ≤640px
+     of content (720px page minus ~80px padding) — keeps the disclaimers on
+     slide 4 from being clipped and prevents bottom-padding collisions on
+     slides 3, 7, 9, and 11. */
+  @page { size: 13.333in 7.5in; margin: 0; }
   @media print {
-    body { background: white; color: black; }
-    .hero, h2, h3, p, li, td, th, blockquote, pre { color: black !important; }
-    pre { background: #f6f6f6; border-color: #ddd; }
-    .punchline { background: #fff8f8; border-color: #f3a; color: black; }
-    nav.toc { display: none; }
-    a { color: black; text-decoration: underline; }
+    html, body {
+      overflow: visible !important;
+      background: var(--bg) !important;
+      width: 1280px;
+    }
+    .deck { width: 1280px; height: auto; }
+    .slide {
+      display: flex !important;
+      position: relative !important;
+      inset: auto !important;
+      width: 1280px !important;
+      height: 720px !important;
+      padding: 36px 80px 30px !important;
+      page-break-after: always !important;
+      break-after: page !important;
+      background: var(--bg) !important;
+    }
+    .slide:last-child { page-break-after: auto !important; break-after: auto !important; }
+    .nav, .nav__hint { display: none !important; }
+    .notes { display: none !important; }
+
+    /* --- Typography: collapse the vw clamps to fixed print sizes --- */
+    .slide__watermark { font-size: 460px !important; }
+    h1.hero { font-size: 150px !important; }
+    h2 {
+      font-size: 54px !important;
+      line-height: 1.03 !important;
+      letter-spacing: -0.025em !important;
+    }
+    .eyebrow {
+      margin-bottom: 14px !important;
+      font-size: 11px !important;
+      letter-spacing: 0.22em !important;
+    }
+    .sub {
+      font-size: 17px !important;
+      margin-top: 12px !important;
+      line-height: 1.45 !important;
+    }
+    .sub.lead {
+      font-size: 24px !important;
+      line-height: 1.3 !important;
+      margin-top: 14px !important;
+    }
+    .tagline { font-size: 26px !important; margin-top: 18px !important; }
+
+    /* --- Cards (slides 2, 5, 8) --- */
+    .cards { margin-top: 22px !important; gap: 12px !important; }
+    .card { padding: 18px 20px !important; gap: 8px !important; }
+    .card h3 { font-size: 18px !important; line-height: 1.2 !important; }
+    .card p { font-size: 13.5px !important; line-height: 1.5 !important; }
+    .card__icon .icon { width: 26px !important; height: 26px !important; }
+    .card__num { font-size: 11px !important; }
+
+    /* --- Flow steps (slides 4, 6) --- */
+    .flow { margin-top: 22px !important; gap: 10px !important; }
+    .flow .step {
+      padding: 14px 14px !important;
+      min-height: 108px !important;
+      gap: 6px !important;
+    }
+    .flow .step h4 { font-size: 16px !important; }
+    .flow .step p { font-size: 12.5px !important; line-height: 1.42 !important; }
+    .flow .step .step-icon .icon { width: 24px !important; height: 24px !important; }
+    .flow .arrow { font-size: 18px !important; }
+
+    /* --- Actor triangle (slide 3, "What ResQ Is") --- */
+    .triangle { margin-top: 24px !important; gap: 18px !important; }
+    .actor { padding: 22px 18px !important; }
+    .actor .icon-circle {
+      width: 64px !important; height: 64px !important;
+      margin-bottom: 16px !important;
+    }
+    .actor .icon-circle .icon { width: 32px !important; height: 32px !important; }
+    .actor h3 { font-size: 21px !important; }
+    .actor p { font-size: 13.5px !important; margin-top: 8px !important; line-height: 1.5 !important; }
+
+    /* --- Slide 4 ("How You Reach Us"): the overflow offender. Trim
+       networks + flow + locate-card + pending-note so all four blocks
+       fit and the orange disclaimer is fully visible. --- */
+    .networks { margin-top: 18px !important; gap: 8px !important; }
+    .net-badge { padding: 7px 14px !important; font-size: 12.5px !important; }
+    .net-badge .icon { width: 12px !important; height: 12px !important; }
+    .locate-card {
+      margin-top: 14px !important;
+      padding: 12px 16px !important;
+      gap: 12px !important;
+      font-size: 13.5px !important;
+      line-height: 1.45 !important;
+      max-width: 100% !important;
+    }
+    .locate-card .icon { width: 22px !important; height: 22px !important; }
+    .pending-note {
+      margin-top: 12px !important;
+      padding: 10px 14px !important;
+      gap: 10px !important;
+      font-size: 12.5px !important;
+      line-height: 1.4 !important;
+    }
+    .pending-note .icon { width: 16px !important; height: 16px !important; }
+
+    /* --- Coordinator dashboard mock (slide 7) --- */
+    .dashmock {
+      margin-top: 22px !important;
+      height: 230px !important;
+      grid-template-columns: 180px 1fr 220px !important;
+    }
+    .dashmock__panel { padding: 12px 10px !important; gap: 6px !important; }
+    .dashmock__row { padding: 7px 9px !important; font-size: 10.5px !important; }
+    .dashmock__row strong { font-size: 11.5px !important; }
+    .dashmock__title { font-size: 9px !important; }
+    .dashmock__quote { font-size: 10.5px !important; padding: 7px 9px !important; }
+
+    /* --- Key rows (slides 7, 10, 12) --- */
+    .keys { margin-top: 16px !important; gap: 10px !important; }
+    .key { padding: 13px 16px !important; gap: 12px !important; }
+    .key h4 { font-size: 16px !important; }
+    .key p { font-size: 13px !important; margin-top: 3px !important; line-height: 1.45 !important; }
+    .key .key-icon .icon { width: 24px !important; height: 24px !important; }
+
+    /* --- Quote (slide 5) --- */
+    .quote {
+      margin-top: 22px !important;
+      padding: 18px 30px !important;
+      font-size: 19px !important;
+      line-height: 1.45 !important;
+    }
+    .quote::before { font-size: 56px !important; }
+    .quote-meta { margin-top: 12px !important; font-size: 14px !important; }
+
+    /* --- SDG grid (slide 9) --- */
+    .sdgs { margin-top: 20px !important; gap: 12px !important; }
+    .sdg { padding: 14px !important; gap: 12px !important; }
+    .sdg .icon-box { width: 40px !important; height: 40px !important; }
+    .sdg .icon-box .icon { width: 22px !important; height: 22px !important; }
+    .sdg .num { font-size: 10px !important; }
+    .sdg h4 { font-size: 15px !important; margin-top: 2px !important; }
+    .sdg p { font-size: 12.5px !important; margin-top: 4px !important; line-height: 1.5 !important; }
+
+    /* --- Status two-column (slide 11) --- */
+    .cols { margin-top: 22px !important; gap: 16px !important; }
+    .col { padding: 20px 22px !important; }
+    .col__head { margin-bottom: 12px !important; }
+    .col li {
+      padding: 9px 0 !important;
+      font-size: 14px !important;
+      line-height: 1.42 !important;
+      gap: 12px !important;
+    }
+    .col li .icon { width: 18px !important; height: 18px !important; }
+
+    /* --- Responders (slide 10) --- */
+    .responders { margin-top: 20px !important; gap: 10px !important; }
+    .responder { padding: 12px 16px !important; gap: 12px !important; }
+    .responder strong { font-size: 15px !important; }
+    .responder small { font-size: 12px !important; margin-top: 2px !important; }
+    .responder .resp-icon .icon { width: 24px !important; height: 24px !important; }
+
+    /* --- Footnote --- */
+    .footnote { margin-top: 22px !important; font-size: 13.5px !important; line-height: 1.55 !important; }
+
+    /* --- Closing slide (12) --- */
+    .closing h1.hero { font-size: 200px !important; }
+    .closing .tagline { font-size: 36px !important; margin-top: 22px !important; }
   }
 </style>
 </head>
 <body>
-<div class="wrap">
 
-  <header class="hero">
-    <div class="badge">🚨 ResQ · Hackathon Pitch Overview</div>
-    <h1>Every second counts.<br/>Any phone. Any network.</h1>
-    <p class="tag">"Nigeria's community-powered emergency response network — built for the people who can't afford to wait."</p>
-    <p class="sub">This document is <strong>what to say</strong>, not a script. Read it, internalise it, then deliver it in your own voice. Each section has a one-line <em>punchline</em> you can lift verbatim if you forget the rest.</p>
-  </header>
+<!-- ============================================================
+     INLINE SVG ICON LIBRARY (no CDN dependency)
+     ============================================================ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-siren" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M7 18v-6a5 5 0 1 1 10 0v6"/><path d="M5 21h14"/><path d="M21 12h1"/><path d="M2 12h1"/><path d="M12 2v1"/><path d="m4.9 4.9.7.7"/><path d="m18.4 4.9-.7.7"/><path d="M3 21h18"/>
+    </symbol>
+    <symbol id="i-phone-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 8.63 18M5.6 14.66A19.42 19.42 0 0 1 2 4.18 2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.72c.13.92.37 1.83.7 2.7a2 2 0 0 1-.45 2L8.1 9.91"/><line x1="22" x2="2" y1="2" y2="22"/>
+    </symbol>
+    <symbol id="i-signal-zero" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2 20h.01"/><path d="M7 20v-4"/><path d="M12 20v-8"/><path d="M17 20V8"/><path d="M22 4v16"/>
+    </symbol>
+    <symbol id="i-users-round" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 21a8 8 0 0 0-16 0"/><circle cx="10" cy="8" r="5"/><path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"/>
+    </symbol>
+    <symbol id="i-user-round" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 1 0-16 0"/>
+    </symbol>
+    <symbol id="i-shield-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M9 12h6"/><path d="M12 9v6"/>
+    </symbol>
+    <symbol id="i-monitor" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/><circle cx="19" cy="6" r="1" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+    </symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect width="6" height="12" x="9" y="2" rx="3"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/>
+    </symbol>
+    <symbol id="i-radio" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.1 19.1 19"/>
+    </symbol>
+    <symbol id="i-brain" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/>
+    </symbol>
+    <symbol id="i-map-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
+    </symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>
+    </symbol>
+    <symbol id="i-target" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+    </symbol>
+    <symbol id="i-filter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+    </symbol>
+    <symbol id="i-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>
+    </symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>
+    </symbol>
+    <symbol id="i-check-square" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+    </symbol>
+    <symbol id="i-dashboard" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/>
+    </symbol>
+    <symbol id="i-history" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/>
+    </symbol>
+    <symbol id="i-gauge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/>
+    </symbol>
+    <symbol id="i-accessibility" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="16" cy="4" r="1"/><path d="m18 19 1-7-6 1"/><path d="m5 8 3-3 5.5 3-2.36 3.5"/><path d="M4.24 14.5a5 5 0 0 0 6.88 6"/><path d="M13.76 17.5a5 5 0 0 0-6.88-6"/>
+    </symbol>
+    <symbol id="i-file-text" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/>
+    </symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>
+    </symbol>
+    <symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </symbol>
+    <symbol id="i-stethoscope" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/>
+    </symbol>
+    <symbol id="i-flame" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+    </symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+    </symbol>
+    <symbol id="i-heart-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/><path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"/>
+    </symbol>
+    <symbol id="i-rocket" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>
+    </symbol>
+    <symbol id="i-key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/>
+    </symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 22V4a2 2 0 0 1 2-2h11l-3 4 3 4H6"/>
+    </symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 3v18h18"/><path d="M7 16V11"/><path d="M12 16V8"/><path d="M17 16V13"/>
+    </symbol>
+    <symbol id="i-handshake" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/>
+    </symbol>
+    <symbol id="i-building" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/>
+    </symbol>
+    <symbol id="i-scale" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+    </symbol>
+    <symbol id="i-trend-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/>
+    </symbol>
+    <symbol id="i-wrench" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+    </symbol>
+    <symbol id="i-hand-coins" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M11 15h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 17"/><path d="m7 21 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.91l-4.2 3.9"/><path d="m2 16 6 6"/><circle cx="16" cy="9" r="2.9"/><circle cx="6" cy="5" r="3"/>
+    </symbol>
+    <symbol id="i-user-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/>
+    </symbol>
+    <symbol id="i-signal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2 20h.01"/><path d="M7 20v-4"/><path d="M12 20v-8"/><path d="M17 20V8"/><path d="M22 4v16"/>
+    </symbol>
+    <symbol id="i-smartphone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/>
+    </symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+    </symbol>
+    <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
+    </symbol>
+  </defs>
+</svg>
 
-  <nav class="toc">
-    <h3>Pitch Map</h3>
-    <ol>
-      <li><a href="#s0">The Cold Open</a></li>
-      <li><a href="#s1">The Problem</a></li>
-      <li><a href="#s2">The Solution in One Sentence</a></li>
-      <li><a href="#s3">Layer 1 — The USSD</a></li>
-      <li><a href="#s4">Layer 2 — The Voice Call</a></li>
-      <li><a href="#s5">Layer 3 — The Automation</a></li>
-      <li><a href="#s6">Layer 4 — The Coordinator Dashboard</a></li>
-      <li><a href="#s7">End-to-End Demo Story</a></li>
-      <li><a href="#s8">Why This Is GovTech Gold</a></li>
-      <li><a href="#s9">Built vs Phase 2</a></li>
-      <li><a href="#s10">The Ask</a></li>
-      <li><a href="#s11">Q&amp;A Prep</a></li>
-      <li><a href="#s12">Speaker Cheat Sheet</a></li>
-      <li><a href="#s13">Tone Tips</a></li>
-    </ol>
-  </nav>
+<style>.icon { display: inline-block; width: 1em; height: 1em; vertical-align: -0.125em; }</style>
 
-  <!-- 0 -->
-  <h2 id="s0"><span class="num">0.</span>The Cold Open <span class="layer-pill">30 seconds</span></h2>
+<div class="deck" id="deck">
 
-  <div class="punchline"><b>Punchline</b><i>"In Nigeria today, dialling 112 is a coin-toss. We turned that coin into a guaranteed answer — on any phone, on any network, in under 10 seconds."</i></div>
-
-  <p>Walk on stage. Hold up a feature phone (Nokia / Itel, whatever's cheap). Then hold up an iPhone. Say:</p>
-
-  <blockquote>
-    <em>"Tonight, someone in Mushin is having a heart attack. Their grandmother grabs the phone next to the bed. It's this one (hold up the feature phone). It has no internet. No app store. No GPS. The official emergency line either doesn't pick up, or sends her in a circle. She has 4 minutes before brain death.</em><br/><br/>
-    <em>We built ResQ so that in those 4 minutes, she dials a 6-digit code, presses '1', and a trained doctor 800 metres away is already on the way — while a government coordinator in Abuja watches the whole rescue happen on a live map.</em><br/><br/>
-    <em>This isn't a future-tech demo. It's running right now. Let me show you."</em>
-  </blockquote>
-
-  <p><strong>Tip:</strong> hold the feature phone for the <em>whole pitch</em>. It becomes a visual anchor — "every feature we ship works on <strong>this</strong>".</p>
-
-  <!-- 1 -->
-  <h2 id="s1"><span class="num">1.</span>The Problem — Why Nigeria's emergency system is broken</h2>
-
-  <div class="punchline"><b>Punchline</b><i>"112 is broken. 911 is American. Nigeria needs its own answer — and it has to start from a feature phone."</i></div>
-
-  <p>Three facts to drop in:</p>
-  <ol>
-    <li>🚑 <strong>Nigeria has no working unified emergency number.</strong> 112 exists on paper. In practice, call drop rates are sky-high, dispatch is manual, and most LGAs (Local Government Areas) have no integration at all.</li>
-    <li>📵 <strong>~60% of Nigerian phones are feature phones or smartphones with no data credit at the moment of crisis.</strong> An "emergency app" that needs the Play Store is an emergency app for the wealthy.</li>
-    <li>🏥 <strong>First responders are already there — they're just invisible.</strong> Every neighbourhood has off-duty nurses, NYSC doctors, vigilante security, retired firefighters. The problem isn't supply. It's matching.</li>
-  </ol>
-
-  <p>Illustration — the gap:</p>
-<pre>  Citizen in crisis              The "system"            Help arrives
-  ───────────────────            ────────────             ────────────
-  📞 dials 112        ──×──►   ❌ no answer        ─────► 🪦  too late
-  📞 calls relative   ──?──►   📞 calls another    ─────► ⏱  35–90 min
-  📱 posts on Twitter ──?──►   🤷 strangers retweet ────► 🤷  maybe</pre>
-
-  <p>ResQ collapses all three lanes into one: <strong>dial → matched → on the way, in under a minute.</strong></p>
-
-  <!-- 2 -->
-  <h2 id="s2"><span class="num">2.</span>The Solution in One Sentence</h2>
-
-  <div class="punchline"><b>Punchline</b><i>"ResQ is one phone number that turns any caller into a verified emergency, finds the nearest trained volunteer, and puts a government coordinator on the same live screen as the rescue."</i></div>
-
-  <p>Three actors. One pipeline.</p>
-
-  <div class="actors">
-    <div class="actor-card">
-      <div class="icon">📞</div>
-      <h4>The Caller</h4>
-      <p>Any phone, any network — even a ₦4,000 Nokia.</p>
+  <!-- ===== SLIDE 1 - TITLE ===== -->
+  <section class="slide slide--active" data-slide="1">
+    <div class="slide__watermark">01</div>
+    <header class="head">
+      <div class="brand"><svg class="icon"><use href="#i-siren"/></svg> ResQ</div>
+      <div class="num">01 / 12</div>
+    </header>
+    <div class="body" style="justify-content: center;">
+      <div class="eyebrow">Public Emergency Infrastructure</div>
+      <h1 class="hero"><span class="res">Res</span><span class="qmark">Q.</span></h1>
+      <p class="tagline">Every second counts. <strong>Any phone. Any network.</strong></p>
+      <p class="sub" style="margin-top: 40px;">
+        A single hotline number that connects any Nigerian, on any phone, to the nearest
+        trained responder in their neighbourhood. A government coordinator watches the
+        whole rescue happen on a live map.
+      </p>
+      <div class="notes">Speaker A · 25s. Plant the tagline. Hold the feature phone for the rest of the talk.</div>
     </div>
-    <div class="actor-card">
-      <div class="icon">🚑</div>
-      <h4>The Rescuer</h4>
-      <p>Nearest verified, skill-matched volunteer.</p>
+  </section>
+
+  <!-- ===== SLIDE 2 - THE PROBLEM ===== -->
+  <section class="slide" data-slide="2">
+    <div class="slide__watermark">02</div>
+    <header class="head">
+      <div class="brand"><svg class="icon"><use href="#i-siren"/></svg> ResQ</div>
+      <div class="num">02 / 12</div>
+    </header>
+    <div class="body">
+      <div class="eyebrow">The Problem</div>
+      <h2>Nigeria's emergency system is <span class="hl">broken</span>.</h2>
+      <p class="sub">Three failures stack into one outcome. Help that doesn't arrive in time.</p>
+      <div class="cards cols-3">
+        <article class="card">
+          <div class="card__head">
+            <span class="card__num">01</span>
+            <span class="card__icon"><svg class="icon"><use href="#i-phone-off"/></svg></span>
+          </div>
+          <h3>112 doesn't pick up</h3>
+          <p>The national emergency line exists on paper. In practice, call drop rates are high, dispatch is manual, and most LGAs have no integration.</p>
+        </article>
+        <article class="card tone-orange">
+          <div class="card__head">
+            <span class="card__num">02</span>
+            <span class="card__icon"><svg class="icon"><use href="#i-signal-zero"/></svg></span>
+          </div>
+          <h3>Most phones can't run an app</h3>
+          <p>Feature phones, prepaid SIMs, no data credit in the moment of crisis. An app-first emergency line only serves the wealthy.</p>
+        </article>
+        <article class="card tone-emerald">
+          <div class="card__head">
+            <span class="card__num">03</span>
+            <span class="card__icon"><svg class="icon"><use href="#i-users-round"/></svg></span>
+          </div>
+          <h3>Responders exist, invisibly</h3>
+          <p>Off-duty doctors, nurses, NYSC corps members, fire wardens, vigilantes. The supply is already there. The system to find them is not.</p>
+        </article>
+      </div>
+      <div class="notes">Speaker A · 40s. Three failures. Keywords: 112, feature phone, invisible responders.</div>
     </div>
-    <div class="actor-card">
-      <div class="icon">🖥</div>
-      <h4>The Govt Coordinator</h4>
-      <p>Live dashboard: every incident, every responder, every word.</p>
+  </section>
+
+  <!-- ===== SLIDE 3 - WHAT RESQ IS ===== -->
+  <section class="slide" data-slide="3">
+    <div class="slide__watermark">03</div>
+    <header class="head">
+      <div class="brand"><svg class="icon"><use href="#i-siren"/></svg> ResQ</div>
+      <div class="num">03 / 12</div>
+    </header>
+    <div class="body">
+      <div class="eyebrow">What ResQ Is</div>
+      <h2>ResQ is <span class="hl">not</span> an app.</h2>
+      <p class="sub lead" style="margin-top: 22px;">
+        It is the matching layer between citizens in crisis and the trained responders
+        already nearby, made visible to government in real time.
+      </p>
+      <div class="triangle">
+        <div class="actor">
+          <div class="icon-circle"><svg class="icon"><use href="#i-user-round"/></svg></div>
+          <h3>The Citizen</h3>
+          <p>Calls from any phone. Knows nothing about how it works.</p>
+        </div>
+        <div class="actor tone-emerald">
+          <div class="icon-circle"><svg class="icon"><use href="#i-shield-plus"/></svg></div>
+          <h3>The Responder</h3>
+          <p>Off-duty professional already on the street. One tap to accept.</p>
+        </div>
+        <div class="actor tone-blue">
+          <div class="icon-circle"><svg class="icon"><use href="#i-monitor"/></svg></div>
+          <h3>The Coordinator</h3>
+          <p>State or LGA dispatcher. Watches every incident live. Audits every outcome.</p>
+        </div>
+      </div>
+      <div class="notes">Speaker A · 40s. Three actors connected through the ResQ pipeline.</div>
     </div>
-  </div>
+  </section>
 
-<pre>┌──────────────┐        ┌─────────────────┐        ┌────────────────────┐
-│  THE CALLER  │  ────► │   THE RESCUER   │  ◄──── │ THE GOVT COORDINATOR│
-│ (any phone)  │        │ (nearest verified│        │  (live dashboard)  │
-│              │        │   volunteer)    │        │                    │
-└──────────────┘        └─────────────────┘        └────────────────────┘
-        ▲                        ▲                          ▲
-        │                        │                          │
-        └────────── ResQ pipeline (USSD + Voice AI + Auto-dispatch) ──────┘</pre>
+  <!-- ===== SLIDE 4 - THE HOTLINE ===== -->
+  <section class="slide" data-slide="4">
+    <div class="slide__watermark">04</div>
+    <header class="head">
+      <div class="brand"><svg class="icon"><use href="#i-siren"/></svg> ResQ</div>
+      <div class="num">04 / 12</div>
+    </header>
+    <div class="body">
+      <div class="eyebrow">How You Reach Us</div>
+      <h2>One number. <span class="hl">Every network.</span></h2>
+      <p class="sub">
+        Anyone in Nigeria dials a single NCC-licensed hotline from any phone on any
+        network. The AI picks up, records what's happening, and dispatches help.
+        No app, no menu, no data plan required.
+      </p>
+      <div class="networks">
+        <span class="net-badge"><svg class="icon"><use href="#i-check"/></svg> MTN</span>
+        <span class="net-badge"><svg class="icon"><use href="#i-check"/></svg> Airtel</span>
+        <span class="net-badge"><svg class="icon"><use href="#i-check"/></svg> Glo</span>
+        <span class="net-badge"><svg class="icon"><use href="#i-check"/></svg> 9mobile</span>
+      </div>
+      <div class="flow" style="grid-template-columns: 1fr auto 1fr auto 1fr;">
+        <div class="step">
+          <span class="step-num">01</span>
+          <span class="step-icon"><svg class="icon"><use href="#i-phone"/></svg></span>
+          <h4>Dial the hotline</h4>
+          <p>From any phone on any Nigerian network. Feature phone or smartphone, no difference.</p>
+        </div>
+        <div class="arrow">→</div>
+        <div class="step">
+          <span class="step-num">02</span>
+          <span class="step-icon"><svg class="icon"><use href="#i-mic"/></svg></span>
+          <h4>Talk</h4>
+          <p>The AI picks up silently and records. No script. No menu. The caller just says what's happening.</p>
+        </div>
+        <div class="arrow">→</div>
+        <div class="step">
+          <span class="step-num">03</span>
+          <span class="step-icon"><svg class="icon"><use href="#i-send"/></svg></span>
+          <h4>Help is on the way</h4>
+          <p>The system locates the caller, extracts the situation, and dispatches the nearest verified responders.</p>
+        </div>
+      </div>
+      <div class="locate-card">
+        <svg class="icon"><use href="#i-radio"/></svg>
+        <div>
+          <strong>Location comes from the call itself.</strong> The telco hands us an
+          approximate fix the moment the line connects (cell-tower triangulation),
+          then the AI tightens it from what the caller says. The caller never has to
+          read out coordinates or know where they are.
+        </div>
+      </div>
+      <div class="pending-note">
+        <svg class="icon"><use href="#i-info"/></svg>
+        <span>Hotline number and telco-location data pending NCC licensing and MTN / Airtel MOU. The intake, AI, and dispatcher pipeline run today against the Africa's Talking sandbox.</span>
+      </div>
+      <div class="notes">Speaker A · 55s. Location via call tracking is the line that makes this real.</div>
+    </div>
+  </section>
 
-  <p>ResQ has <strong>four layers</strong> stacked on top of each other. Each one works alone. Together they win the hackathon.</p>
+  <!-- ===== SLIDE 5 - AI IN THE LOOP ===== -->
+  <section class="slide" data-slide="5">
+    <div class="slide__watermark">05</div>
+    <header class="head">
+      <div class="brand"><svg class="icon"><use href="#i-siren"/></svg> ResQ</div>
+      <div class="num">05 / 12</div>
+    </header>
+    <div class="body">
+      <div class="eyebrow">What the AI Pulls Out</div>
+      <h2>The caller talks. The system <span class="hl">listens</span> for three things.</h2>
+      <div class="cards cols-3">
+        <article class="card tone-violet">
+          <div class="card__head">
+            <span class="card__num">01</span>
+            <span class="card__icon"><svg class="icon"><use href="#i-brain"/></svg></span>
+          </div>
+          <h3>Severity</h3>
+          <p>A 1 to 10 triage score, the type of emergency, and how many responders to send.</p>
+        </article>
+        <article class="card tone-emerald">
+          <div class="card__head">
+            <span class="card__num">02</span>
+            <span class="card__icon"><svg class="icon"><use href="#i-map-pin"/></svg></span>
+          </div>
+          <h3>Location</h3>
+          <p>"Behind the big mosque on Aba Road" becomes a geocoded pin on the live map within seconds.</p>
+        </article>
+        <article class="card tone-orange">
+          <div class="card__head">
+            <span class="card__num">03</span>
+            <span class="card__icon"><svg class="icon"><use href="#i-alert"/></svg></span>
+          </div>
+          <h3>Urgency signals</h3>
+          <p>Words like "bleeding" or "not breathing" raise the severity and re-rank the dispatch.</p>
+        </article>
+      </div>
+      <div class="quote">
+        My dad, 67, chest pain, we are near Shoprite Lekki Phase 1.
+      </div>
+      <p class="quote-meta">
+        Pin lands at Shoprite. Severity high. Two responders ranked by distance.
+        <strong>No human typed a word.</strong>
+      </p>
+      <div class="notes">Speaker A · 35s. End of A's segment. Hand to Speaker B.</div>
+    </div>
+  </section>
 
-  <table>
-    <thead><tr><th>Layer</th><th>What it does</th><th>Why a layman cares</th></tr></thead>
-    <tbody>
-      <tr><td><strong>1. USSD</strong></td><td>Dial <code>*384*1#</code> — pick emergency type — done.</td><td>Works on a ₦4,000 Nokia. No app. No internet. No data.</td></tr>
-      <tr><td><strong>2. Voice AI</strong></td><td>If they can talk, an AI agent picks up and <em>converses</em> — asking the right questions.</td><td>The caller can be panicking. The AI stays calm, in English or Pidgin.</td></tr>
-      <tr><td><strong>3. Automation</strong></td><td>AI scores severity, extracts location from speech, ranks the nearest skilled responders, and dispatches them instantly.</td><td>No human delay between dial and dispatch. The grandmother doesn't wait on hold.</td></tr>
-      <tr><td><strong>4. Dashboard</strong></td><td>A government coordinator sees every incident, every responder, the live transcript, and the moving pin — in real time.</td><td>Government finally has <strong>eyes</strong> on what's happening in their LGA, in real time.</td></tr>
-    </tbody>
-  </table>
+  <!-- ===== SLIDE 6 - AUTO-DISPATCH ===== -->
+  <section class="slide" data-slide="6">
+    <div class="slide__watermark">06</div>
+    <header class="head">
+      <div class="brand"><svg class="icon"><use href="#i-siren"/></svg> ResQ</div>
+      <div class="num">06 / 12</div>
+    </header>
+    <div class="body">
+      <div class="eyebrow">How Dispatch Happens</div>
+      <h2>Four steps. <span class="hl">Zero humans</span> in the loop.</h2>
+      <div class="flow">
+        <div class="step">
+          <span class="step-num">01</span>
+          <span class="step-icon"><svg class="icon"><use href="#i-target"/></svg></span>
+          <h4>Incident</h4>
+          <p>Type, location, and severity arrive at the dispatcher.</p>
+        </div>
+        <div class="arrow">→</div>
+        <div class="step">
+          <span class="step-num">02</span>
+          <span class="step-icon"><svg class="icon"><use href="#i-filter"/></svg></span>
+          <h4>Match</h4>
+          <p>Skill, Haversine distance, and availability radius decide who qualifies.</p>
+        </div>
+        <div class="arrow">→</div>
+        <div class="step">
+          <span class="step-num">03</span>
+          <span class="step-icon"><svg class="icon"><use href="#i-send"/></svg></span>
+          <h4>Notify</h4>
+          <p>The nearest five verified responders get the alert at the same time.</p>
+        </div>
+        <div class="arrow">→</div>
+        <div class="step">
+          <span class="step-num">04</span>
+          <span class="step-icon"><svg class="icon"><use href="#i-check"/></svg></span>
+          <h4>Accept</h4>
+          <p>First to tap accept gets the job. The rest stay on standby.</p>
+        </div>
+      </div>
+      <p class="footnote">
+        No dispatcher on the phone. No call queue. The matcher runs every time a location lands and on every status change.
+      </p>
+      <div class="notes">Speaker B · 40s. Keywords: matcher, verified, nearest five, no dispatcher.</div>
+    </div>
+  </section>
 
-  <!-- 3 -->
-  <h2 id="s3"><span class="num">3.</span>Layer 1 — The USSD <span class="layer-pill">The part that makes this Nigerian</span></h2>
+  <!-- ===== SLIDE 7 - COORDINATOR DASHBOARD ===== -->
+  <section class="slide" data-slide="7">
+    <div class="slide__watermark">07</div>
+    <header class="head">
+      <div class="brand"><svg class="icon"><use href="#i-siren"/></svg> ResQ</div>
+      <div class="num">07 / 12</div>
+    </header>
+    <div class="body">
+      <div class="eyebrow">The Coordinator Dashboard</div>
+      <h2>The government's <span class="hl">single screen</span>.</h2>
+      <div class="dashmock">
+        <div class="dashmock__panel">
+          <div class="dashmock__title">Active Incidents</div>
+          <div class="dashmock__row"><strong><span class="dot red"></span>Medical · Critical</strong>GRA Phase 2 · 2 resp.</div>
+          <div class="dashmock__row"><strong><span class="dot orange"></span>Fire · High</strong>Trans Amadi · active</div>
+          <div class="dashmock__row"><strong><span class="dot blue"></span>Accident · High</strong>Eleme Junction</div>
+          <div class="dashmock__row"><strong><span class="dot emerald"></span>Medical · Resolved</strong>Borokiri · audit OK</div>
+        </div>
+        <div class="dashmock__map"></div>
+        <div class="dashmock__panel">
+          <div class="dashmock__title">Incident Detail</div>
+          <div style="font-size:10px;color:var(--fg-mute);font-family:var(--mono)">Caller +234 801 ••• ••67</div>
+          <div class="dashmock__row"><strong>Triage 9 / 10</strong>Severity: critical</div>
+          <div class="dashmock__title" style="margin-top:6px;">Live Transcript</div>
+          <div class="dashmock__quote">"…we are near the big mosque on Aba Road, he is not breathing…"</div>
+          <div class="dashmock__row" style="margin-top:6px;"><strong>Status</strong>Active → Resolve</div>
+        </div>
+      </div>
+      <div class="keys cols-3">
+        <div class="key tone-blue">
+          <span class="key-icon"><svg class="icon"><use href="#i-dashboard"/></svg></span>
+          <div><h4>One screen per LGA</h4><p>Every incident, every responder, every state change.</p></div>
+        </div>
+        <div class="key tone-emerald">
+          <span class="key-icon"><svg class="icon"><use href="#i-history"/></svg></span>
+          <div><h4>Immutable audit trail</h4><p>Every transition timestamped. It cannot be edited.</p></div>
+        </div>
+        <div class="key tone-orange">
+          <span class="key-icon"><svg class="icon"><use href="#i-gauge"/></svg></span>
+          <div><h4>Response-time metrics</h4><p>Public accountability by LGA, by month.</p></div>
+        </div>
+      </div>
+      <div class="notes">Speaker B · 55s. Slow down on "auditable". That is the govtech line.</div>
+    </div>
+  </section>
 
-  <div class="punchline"><b>Punchline</b><i>"If you can dial, you can be rescued. That's the whole pitch — and that's why this is govtech, not just tech."</i></div>
+  <!-- ===== SLIDE 8 - WHY THIS IS GOVTECH ===== -->
+  <section class="slide" data-slide="8">
+    <div class="slide__watermark">08</div>
+    <header class="head">
+      <div class="brand"><svg class="icon"><use href="#i-siren"/></svg> ResQ</div>
+      <div class="num">08 / 12</div>
+    </header>
+    <div class="body">
+      <div class="eyebrow">Positioning</div>
+      <h2>This is not a startup pitch. It is <span class="hl">public infrastructure</span>.</h2>
+      <div class="cards cols-2">
+        <article class="card">
+          <div class="card__head">
+            <span class="card__num">01</span>
+            <span class="card__icon"><svg class="icon"><use href="#i-accessibility"/></svg></span>
+          </div>
+          <h3>Universal access</h3>
+          <p>Works on the cheapest phone in the country. No data, no app store, no digital divide.</p>
+        </article>
+        <article class="card tone-emerald">
+          <div class="card__head">
+            <span class="card__num">02</span>
+            <span class="card__icon"><svg class="icon"><use href="#i-file-text"/></svg></span>
+          </div>
+          <h3>Accountability built in</h3>
+          <p>Every action audited by default. Response times become a metric, not a press release.</p>
+        </article>
+        <article class="card tone-blue">
+          <div class="card__head">
+            <span class="card__num">03</span>
+            <span class="card__icon"><svg class="icon"><use href="#i-layers"/></svg></span>
+          </div>
+          <h3>LGA-scalable</h3>
+          <p>Same software for all 774 Local Government Areas. One configuration change per state.</p>
+        </article>
+        <article class="card tone-orange">
+          <div class="card__head">
+            <span class="card__num">04</span>
+            <span class="card__icon"><svg class="icon"><use href="#i-users"/></svg></span>
+          </div>
+          <h3>Public asset, public good</h3>
+          <p>Uses people the government already pays. NYSC, FRSC, off-duty health workers, civil defence.</p>
+        </article>
+      </div>
+      <div class="notes">Speaker B · 45s. Keywords: public infrastructure, audit by default, 774 LGAs.</div>
+    </div>
+  </section>
 
-  <p>USSD is the boring grey text menu you see when you check your airtime balance. It is <strong>the most accessible technology on the planet</strong>. It works on every phone built since 1996. It works without data. It works in a buka in Onitsha and a fishing village in Bonny.</p>
+  <!-- ===== SLIDE 9 - SDG ALIGNMENT ===== -->
+  <section class="slide" data-slide="9">
+    <div class="slide__watermark">09</div>
+    <header class="head">
+      <div class="brand"><svg class="icon"><use href="#i-siren"/></svg> ResQ</div>
+      <div class="num">09 / 12</div>
+    </header>
+    <div class="body">
+      <div class="eyebrow">UN Sustainable Development Goals</div>
+      <h2>ResQ moves the needle on <span class="hl">six</span> SDGs.</h2>
+      <p class="sub">Direct, measurable contribution. Not aspirational alignment.</p>
+      <div class="sdgs">
+        <div class="sdg sdg-3">
+          <div class="icon-box"><svg class="icon"><use href="#i-heart-pulse"/></svg></div>
+          <div><div class="num">SDG 03</div><h4>Good Health &amp; Well-Being</h4><p>Cutting response time directly reduces avoidable deaths from cardiac arrest, road accidents, fires, and obstetric emergencies.</p></div>
+        </div>
+        <div class="sdg sdg-9">
+          <div class="icon-box"><svg class="icon"><use href="#i-wrench"/></svg></div>
+          <div><div class="num">SDG 09</div><h4>Industry &amp; Infrastructure</h4><p>Resilient public emergency rails built on telco infrastructure that already exists. No new hardware required.</p></div>
+        </div>
+        <div class="sdg sdg-10">
+          <div class="icon-box"><svg class="icon"><use href="#i-trend-down"/></svg></div>
+          <div><div class="num">SDG 10</div><h4>Reduced Inequalities</h4><p>One hotline, any phone, any network. The poorest Nigerian gets the same emergency line as the wealthiest.</p></div>
+        </div>
+        <div class="sdg sdg-11">
+          <div class="icon-box"><svg class="icon"><use href="#i-building"/></svg></div>
+          <div><div class="num">SDG 11</div><h4>Sustainable Cities &amp; Communities</h4><p>Communities become resilient when local responders are findable. Disaster response moves from hours to minutes.</p></div>
+        </div>
+        <div class="sdg sdg-16">
+          <div class="icon-box"><svg class="icon"><use href="#i-scale"/></svg></div>
+          <div><div class="num">SDG 16</div><h4>Peace, Justice &amp; Strong Institutions</h4><p>An immutable audit trail makes government emergency response measurable, public, and enforceable.</p></div>
+        </div>
+        <div class="sdg sdg-17">
+          <div class="icon-box"><svg class="icon"><use href="#i-handshake"/></svg></div>
+          <div><div class="num">SDG 17</div><h4>Partnerships for the Goals</h4><p>A public-private model. Telco aggregators, state SEMAs, community responders, AI partners. All on one rail.</p></div>
+        </div>
+      </div>
+      <div class="notes">Speaker B · 35s. Hit the headline and let the cards do the work.</div>
+    </div>
+  </section>
 
-  <h3>What the user actually sees</h3>
-  <p>When they dial <code>*384*1#</code>, here is the <strong>literal screen</strong> that appears (this is the real text from <code>apps/api/src/routes/ussd.ts</code>):</p>
+  <!-- ===== SLIDE 10 - THE RESPONDER NETWORK ===== -->
+  <section class="slide" data-slide="10">
+    <div class="slide__watermark">10</div>
+    <header class="head">
+      <div class="brand"><svg class="icon"><use href="#i-siren"/></svg> ResQ</div>
+      <div class="num">10 / 12</div>
+    </header>
+    <div class="body">
+      <div class="eyebrow">The Responder Network</div>
+      <h2>Who actually responds, and <span class="hl">why they stay</span>.</h2>
+      <p class="sub">The community itself. Already trained. Already on the street where the emergency happens.</p>
+      <div class="responders">
+        <div class="responder">
+          <span class="resp-icon"><svg class="icon"><use href="#i-stethoscope"/></svg></span>
+          <div><strong>Off-duty doctors and nurses</strong><small>MDCN-verified, skill-tagged</small></div>
+        </div>
+        <div class="responder">
+          <span class="resp-icon"><svg class="icon"><use href="#i-flame"/></svg></span>
+          <div><strong>Fire wardens and civil defence</strong><small>Cross-checked against NSCDC records</small></div>
+        </div>
+        <div class="responder">
+          <span class="resp-icon"><svg class="icon"><use href="#i-shield"/></svg></span>
+          <div><strong>Security and police liaisons</strong><small>Includes registered vigilantes</small></div>
+        </div>
+        <div class="responder">
+          <span class="resp-icon"><svg class="icon"><use href="#i-heart-pulse"/></svg></span>
+          <div><strong>NYSC, FRSC, Red Cross first aiders</strong><small>Credentials uploaded at signup</small></div>
+        </div>
+      </div>
+      <div class="keys cols-2">
+        <div class="key tone-blue">
+          <span class="key-icon"><svg class="icon"><use href="#i-user-plus"/></svg></span>
+          <div><h4>Recruitment</h4><p>Public sign-up on the ResQ site. Credential check. Verified flag. Activated in the matching pool.</p></div>
+        </div>
+        <div class="key tone-emerald">
+          <span class="key-icon"><svg class="icon"><use href="#i-hand-coins"/></svg></span>
+          <div><h4>A modest monthly stipend</h4><p>Weighted by verified response activity. Performance-aligned. A part-time public service rather than volunteer burnout.</p></div>
+        </div>
+      </div>
+      <div class="notes">Speaker B · 45s. The stipend line is the trust line.</div>
+    </div>
+  </section>
 
-<pre>╭───────────────────────────╮          ╭───────────────────────────╮
-│  ResQ Emergency Alert     │          │  ResQ Alert Sent.         │
-│                           │          │                           │
-│  Choose emergency type:   │   ───►   │  Is this your number?     │
-│  1. Medical               │          │  1. Yes                   │
-│  2. Fire                  │          │  2. No, calling for       │
-│  3. Crime / Security      │          │     someone               │
-│  4. Road Accident         │          │                           │
-╰───────────────────────────╯          ╰───────────────────────────╯
-            │                                       │
-            ▼                                       ▼
-       (caller picks 1)                  ╭───────────────────────────╮
-                                         │  ResQ Alert Sent.         │
-                                         │  Medical emergency        │
-                                         │  reported.                │
-                                         │  Responders being         │
-                                         │  contacted.               │
-                                         │  Keep this line open.     │
-                                         │  Reply to incoming SMS    │
-                                         │  with your nearest        │
-                                         │  landmark.                │
-                                         ╰───────────────────────────╯</pre>
+  <!-- ===== SLIDE 11 - BUILT vs PENDING ===== -->
+  <section class="slide" data-slide="11">
+    <div class="slide__watermark">11</div>
+    <header class="head">
+      <div class="brand"><svg class="icon"><use href="#i-siren"/></svg> ResQ</div>
+      <div class="num">11 / 12</div>
+    </header>
+    <div class="body">
+      <div class="eyebrow">Status</div>
+      <h2>The software is shipped. <span class="hl">The licensing is the work ahead.</span></h2>
+      <div class="cols">
+        <div class="col tone-emerald">
+          <div class="col__head">
+            <div class="col__title"><svg class="icon"><use href="#i-check-square"/></svg> Built and running</div>
+            <span class="col__num">SOFTWARE</span>
+          </div>
+          <ul>
+            <li><svg class="icon"><use href="#i-check"/></svg><span>AI call intake (transcript and silent recording pipeline)</span></li>
+            <li><svg class="icon"><use href="#i-check"/></svg><span>Triage and location extraction from natural speech</span></li>
+            <li><svg class="icon"><use href="#i-check"/></svg><span>Skill and distance dispatcher with real-time push</span></li>
+            <li><svg class="icon"><use href="#i-check"/></svg><span>Coordinator dashboard with immutable audit trail</span></li>
+            <li><svg class="icon"><use href="#i-check"/></svg><span>Responder mobile view and live match lines</span></li>
+            <li><svg class="icon"><use href="#i-check"/></svg><span>USSD intake proven against the Africa's Talking sandbox</span></li>
+          </ul>
+        </div>
+        <div class="col">
+          <div class="col__head">
+            <div class="col__title"><svg class="icon"><use href="#i-rocket"/></svg> Pending partnerships and licensing</div>
+            <span class="col__num">REGULATORY</span>
+          </div>
+          <ul>
+            <li><svg class="icon"><use href="#i-key"/></svg><span>NCC-licensed national hotline number (primary entry point)</span></li>
+            <li><svg class="icon"><use href="#i-key"/></svg><span>NCC USSD shortcode allocation (auxiliary entry)</span></li>
+            <li><svg class="icon"><use href="#i-signal"/></svg><span>MTN and Airtel cell-tower triangulation MOU</span></li>
+            <li><svg class="icon"><use href="#i-building"/></svg><span>State SEMA integrations and rollout</span></li>
+            <li><svg class="icon"><use href="#i-smartphone"/></svg><span>Native iOS and Android apps</span></li>
+            <li><svg class="icon"><use href="#i-chart"/></svg><span>Public response-time analytics</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="notes">Speaker B · 25s. Be honest about what needs licensing.</div>
+    </div>
+  </section>
 
-  <p><strong>Two screens. Five seconds. Done.</strong></p>
+  <!-- ===== SLIDE 12 - THE ASK ===== -->
+  <section class="slide closing" data-slide="12">
+    <div class="slide__watermark">12</div>
+    <header class="head" style="position:absolute; top:5.5vh; left:7vw; right:7vw;">
+      <div class="brand"><svg class="icon"><use href="#i-siren"/></svg> ResQ</div>
+      <div class="num">12 / 12</div>
+    </header>
+    <div class="body" style="align-items:center; text-align:center; justify-content:center;">
+      <div class="eyebrow">The Ask</div>
+      <div class="keys cols-3" style="max-width: 1100px;">
+        <div class="key">
+          <span class="key-icon"><svg class="icon"><use href="#i-key"/></svg></span>
+          <div><h4>License the hotline</h4><p>NCC via aggregator. Four to eight weeks.</p></div>
+        </div>
+        <div class="key tone-emerald">
+          <span class="key-icon"><svg class="icon"><use href="#i-flag"/></svg></span>
+          <div><h4>90-day Port Harcourt pilot</h4><p>One LGA. 100 verified responders.</p></div>
+        </div>
+        <div class="key tone-blue">
+          <span class="key-icon"><svg class="icon"><use href="#i-chart"/></svg></span>
+          <div><h4>Publish numbers against 112</h4><p>A public response-time comparison.</p></div>
+        </div>
+      </div>
+      <h1 class="hero" style="margin-top: 64px;"><span class="res">Res</span><span class="qmark">Q.</span></h1>
+      <p class="tagline">Every second counts. <strong>Any phone. Any network.</strong></p>
+      <div class="notes" style="margin-top: 32px; text-align: left; max-width: 720px;">Speaker B · 25s. Pause after the tagline. Walk away from the mic.</div>
+    </div>
+  </section>
 
-  <h3>Three things to brag about here</h3>
-  <ol>
-    <li><strong>"Is this your number?" / "No, calling for someone."</strong> — This is the question no one else asks. In Nigeria, <strong>people share phones</strong>. If you collapse from a stroke, your neighbour grabs <em>their</em> phone. ResQ knows to route the SMS to the right person.</li>
-    <li><strong>Landmark-by-SMS.</strong> A feature phone has no GPS. So after the USSD ends, we send an SMS asking <em>"Reply with your nearest landmark."</em> The caller texts back <strong>"Behind the big mosque on Aba Road"</strong> — and our AI converts that into a map pin. The grandmother doesn't need to know what latitude is.</li>
-    <li><strong>Placeholder pin on dial.</strong> The moment they press '1', a pin lands on the coordinator's map <em>before the call even ends</em> — so the coordinator can already start watching. No dead air on the government side.</li>
-  </ol>
-
-  <blockquote class="layman"><em>"USSD is the same menu you see when you check airtime. We're using it to save lives. If your phone can ask for your balance, your phone can call ResQ."</em></blockquote>
-
-  <!-- 4 -->
-  <h2 id="s4"><span class="num">4.</span>Layer 2 — The Voice Call <span class="layer-pill">AI does the panicking for you</span></h2>
-
-  <div class="punchline"><b>Punchline</b><i>"If the caller can speak, the AI picks up, talks them through it in plain English, and writes the report while they're still on the line."</i></div>
-
-  <p>For callers with airtime to make a voice call (or for smartphone users), ResQ also exposes a <strong>voice line</strong>. Here's what happens — and why it's wild:</p>
-
-  <h3>The flow</h3>
-<pre>   📞 Caller dials       🤖 ResQ AI agent       📝 Live transcript       🖥  Coordinator dashboard
-   ──────────────       ──────────────────       ──────────────────       ──────────────────────
-        │                       │                        │                          │
-        │  "Hello? Help!"       │                        │                          │
-        ├──────────────────────►│                        │                          │
-        │                       │  "Stay calm. Are you   │                          │
-        │                       │   the patient? Where   │                          │
-        │                       │   are you?"            │                          │
-        │◄──────────────────────┤                        │                          │
-        │                       │                        │                          │
-        │  "My dad… chest…      │                        │                          │
-        │   we're near Shoprite │                        │                          │
-        │   in Lekki Phase 1"   │                        │                          │
-        ├──────────────────────►│  (stream every line)   │                          │
-        │                       ├───────────────────────►│   (stream every line)    │
-        │                       │                        ├─────────────────────────►│
-        │                       │                        │                          │  ← coordinator
-        │                       │                        │                          │     watches the
-        │                       │                        │                          │     conversation
-        │                       │                        │                          │     live</pre>
-
-  <h3>Three magic moments to point at</h3>
-  <ol>
-    <li><strong>The AI agent (ElevenLabs voice + Claude brain) picks up the call in milliseconds.</strong> No queue. No "Press 1 for English". The caller hears a calm human-sounding voice that says <em>"You're connected to ResQ. Tell me what's happening."</em></li>
-    <li><strong>The transcript streams live to the dashboard.</strong> As the caller speaks, the words appear letter-by-letter on the coordinator's screen — <em>and on the responder's phone too</em>. The volunteer driving to the scene already knows the patient is bleeding, what's bleeding, and that the husband is on-scene.</li>
-    <li><strong>The AI extracts structured detail from natural speech:</strong>
-      <ul>
-        <li>"near Shoprite in Lekki Phase 1" → map pin on the dashboard</li>
-        <li>"my dad, 67, chest pain, sweating" → victim age, severity, symptoms</li>
-        <li>"I think he's getting worse" → urgency signal that bumps the severity score</li>
-      </ul>
-    </li>
-  </ol>
-
-  <blockquote class="layman"><em>"You don't have to know what to say. The AI knows what to ask. And while you're still answering, help is already moving."</em></blockquote>
-
-  <!-- 5 -->
-  <h2 id="s5"><span class="num">5.</span>Layer 3 — The Automation <span class="layer-pill">The part that wins the hackathon</span></h2>
-
-  <div class="punchline"><b>Punchline</b><i>"From dial to dispatch in under 10 seconds — with zero humans in the loop. The first time a person is involved is when the volunteer accepts the alert on their phone."</i></div>
-
-  <p>This is the section where the judges should lean forward. Show the diagram below on screen.</p>
-
-<pre>       ┌────────────────────────────────────────────────────────────┐
-       │                  ResQ AUTOMATION ENGINE                    │
-       │                                                            │
-       │   ┌───────────┐    ┌──────────────┐    ┌──────────────┐    │
-       │   │  TRIAGE   │    │  LOCATION    │    │   DISPATCH   │    │
-       │   │  (Claude) │    │  EXTRACTOR   │    │  (matcher)   │    │
-       │   │  ───────  │    │  ───────────│    │  ──────────  │    │
-       │   │ severity  │    │ "near big    │    │ skill match  │    │
-       │   │ score 1–10│    │  mosque" →   │    │ + Haversine  │    │
-       │   │ + label   │    │   lat,lng    │    │ + radius     │    │
-       │   └─────┬─────┘    └───────┬──────┘    └──────┬───────┘    │
-       │         │                  │                  │            │
-       │         └──────────┬───────┴──────────┬───────┘            │
-       │                    ▼                  ▼                    │
-       │            ┌───────────────┐  ┌────────────────────┐       │
-       │            │ INCIDENT CARD │  │ PUSH TO RESPONDERS │       │
-       │            │  on dashboard │  │   (real-time WS)   │       │
-       │            └───────────────┘  └────────────────────┘       │
-       └────────────────────────────────────────────────────────────┘
-                       ▲                              │
-                       │                              ▼
-                  USSD / Voice / SMS              📱 Volunteer phone:
-                                                  "Medical, 800m away,
-                                                   tap to ACCEPT"</pre>
-
-  <h3>Walk the judges through each box</h3>
-
-  <p><strong>Box 1 — AI Triage</strong> (<code>services/openrouter.ts</code>)<br/>
-  Claude 3.5 Sonnet looks at:</p>
-  <ul>
-    <li>Incident type (medical / fire / crime / accident)</li>
-    <li>Time of day — <em>"2 AM medical" is more critical than "2 PM medical"</em></li>
-    <li>How many responders are nearby — <em>if zero responders are within 10 km, the severity is auto-bumped</em></li>
-  </ul>
-  <p>It returns: <code>{ severity: "high", triage_score: 8, responders_recommended: 2 }</code>. Color-coded on the dashboard.</p>
-
-  <p><strong>Box 2 — Location extractor</strong><br/>
-  For every chunk of transcript, the AI pulls out:</p>
-  <ul>
-    <li><code>location_text</code>: the exact phrase the caller used</li>
-    <li><code>landmarks</code>: an array of nearby reference points</li>
-    <li><code>victim_details</code>: age, count, severity</li>
-    <li><code>urgency_signals</code>: "bleeding won't stop", "not breathing"</li>
-  </ul>
-  <p>The map pin <strong>moves in real time</strong> as the caller adds detail. The judges will <em>gasp</em> when you show that.</p>
-
-  <p><strong>Box 3 — Dispatcher</strong> (<code>services/matcher.ts</code>)<br/>
-  For every responder in the database, ResQ checks:</p>
-  <ul>
-    <li>✅ Are they <code>available</code> and <code>verified</code>?</li>
-    <li>✅ Do their skills match? (<code>medical</code> for medical, <code>fire_warden</code> for fire, etc.)</li>
-    <li>✅ Are they within their declared service radius? (Haversine distance)</li>
-    <li>✅ Rank by distance, take top 5</li>
-  </ul>
-  <p>Push to all 5 phones simultaneously via WebSocket. <strong>First to accept gets the job.</strong></p>
-
-  <blockquote class="layman"><em>"The AI does in 3 seconds what a human dispatcher does in 3 minutes — and it never goes on lunch break."</em></blockquote>
-
-  <!-- 6 -->
-  <h2 id="s6"><span class="num">6.</span>Layer 4 — The Coordinator Dashboard <span class="layer-pill">The govtech part</span></h2>
-
-  <div class="punchline"><b>Punchline</b><i>"For the first time, a state emergency commissioner has a single screen that shows every active emergency, every responder, every conversation — live."</i></div>
-
-  <p>Show a screenshot here. Or, better, <strong>share the screen and click through the live demo dashboard</strong>.</p>
-
-  <h3>What's on the screen</h3>
-<pre>┌────────────────────────────────────────────────────────────────────────────────┐
-│  🚨 ResQ  |  Port Harcourt LGA  |  ●  LIVE      🔴 4 critical  ✅ 12 responders │
-├──────────────────────┬─────────────────────────────────────────────┬──────────┤
-│                      │                                             │          │
-│  ACTIVE INCIDENTS    │                LIVE MAP                     │ INCIDENT │
-│  ───────────────     │       ───────────────────────────           │  DETAIL  │
-│  🔴 Medical          │                                             │ ──────── │
-│     07:42 · Lekki    │         📍 (red pin) Medical                │ Caller:  │
-│     score 9/10       │              🟢 ─── 🟢 (responders          │ +234801…│
-│     2 responders     │                       en route)             │          │
-│  ───────────────     │                                             │ Triage:  │
-│  🟠 Fire             │         📍 (orange pin) Fire                │  9/10    │
-│     07:38 · D-Line   │              🟢 (1 responder accepted)      │ Critical │
-│     score 7/10       │                                             │          │
-│  ───────────────     │         📍 (blue pin) Crime                 │ LIVE     │
-│  🔵 Crime            │                                             │ TRANS-   │
-│     07:35 · Diobu    │                                             │ CRIPT:   │
-│     score 5/10       │  [open map · zoom · filter responders]      │ "We are  │
-│                      │                                             │  near    │
-│                      │                                             │  the big │
-│                      │                                             │  mosque…"│
-│                      │                                             │          │
-│                      │                                             │ [Call    │
-│                      │                                             │  caller] │
-│                      │                                             │ [Mark    │
-│                      │                                             │  resolved]│
-└──────────────────────┴─────────────────────────────────────────────┴──────────┘</pre>
-
-  <h3>What the coordinator can do (and why it's govtech)</h3>
-  <ol>
-    <li><strong>See every incident in their LGA</strong> — colour-coded by severity, sorted by AI triage score.</li>
-    <li><strong>Watch the rescue happen on the map</strong> — responder pins move in real time as they drive to the scene.</li>
-    <li><strong>Read the call transcript live</strong> — no need to wait for a report. They can override if the AI misclassified.</li>
-    <li><strong>Push to talk</strong> — one button initiates a callback to the caller through Africa's Talking voice.</li>
-    <li><strong>Audit trail by default</strong> — every state change (<code>new → triaged → assigned → active → resolved</code>) is timestamped to the millisecond. <em>This is the line that wins the govtech category.</em></li>
-  </ol>
-
-  <h3>The status pipeline (judges love a flow)</h3>
-<pre>   new ──► triaged ──► assigned ──► active ──► resolved
-                                   │
-                                   ├──► false_alarm   (coordinator marks)
-                                   └──► cancelled      (caller withdraws)</pre>
-
-  <p>Every transition is logged with a timestamp, the actor, and the previous state. <strong>You can't lose evidence. You can't change history. You can audit a state commissioner's response time the same way you'd audit a bank ledger.</strong></p>
-
-  <blockquote class="layman"><em>"For the first time, government can prove it showed up — or be held accountable when it didn't. That's not just tech. That's reform."</em></blockquote>
-
-  <!-- 7 -->
-  <h2 id="s7"><span class="num">7.</span>The End-to-End Demo Story <span class="layer-pill">Run this live</span></h2>
-
-  <div class="punchline"><b>Punchline</b><i>"Watch this. From dial to dispatch in 8 seconds. No edits, no cuts."</i></div>
-
-  <p>This is the story arc for the live demo. <strong>Rehearse it three times.</strong> Show all three screens side-by-side: the dialer (phone), the coordinator dashboard, and a second phone showing the responder view.</p>
-
-<pre>   T+0s    📞 Open AT simulator (or real phone). Dial *384*1#.
-   T+1s    Menu appears: pick 1 (Medical).
-   T+3s    Press 1 (yes, my number).
-   T+4s    USSD ends — message: "Responders being contacted."
-   T+4s    🖥  Dashboard: red Medical pin appears in Port Harcourt.
-                AI triage score appears: "Severity: high · 8/10"
-   T+5s    📱 Responder phone (volunteer): incident card pops up.
-                "Medical · 800m · tap to ACCEPT"
-   T+6s    Responder taps ACCEPT.
-   T+7s    🖥  Dashboard: responder pin turns green, joins the incident.
-                Incident status flips: new → triaged → assigned → active.
-   T+8s    Coordinator clicks "Push transcript" — paste a one-line caller
-                quote ("we are near the big mosque on Aba Road").
-   T+9s    🖥  Map pin **moves** to the actual mosque location.
-                📱 Responder phone shows the same transcript line.
-   T+15s   Click "Mark resolved." Audit trail ticks over.</pre>
-
-  <p>End the demo by saying:</p>
-  <blockquote><em>"That's the full cycle — citizen, volunteer, government — in under 15 seconds. Today, on the official 112 line, the caller is usually still on hold."</em></blockquote>
-
-  <!-- 8 -->
-  <h2 id="s8"><span class="num">8.</span>Why This Is GovTech Gold <span class="layer-pill">The closer</span></h2>
-
-  <div class="punchline"><b>Punchline</b><i>"ResQ isn't an app. It's a piece of public infrastructure that costs less than a single ambulance and works from day one in every LGA in Nigeria."</i></div>
-
-  <p>Five points. Hit them like nails.</p>
-  <table>
-    <thead><tr><th>#</th><th>The govtech win</th><th>Why judges care</th></tr></thead>
-    <tbody>
-      <tr><td>1</td><td><strong>Universal access</strong></td><td>Works on a ₦4,000 phone. No digital divide. Constitutional-grade access to emergency services.</td></tr>
-      <tr><td>2</td><td><strong>Accountability built-in</strong></td><td>Every incident has an immutable audit trail. Response times become a public metric, not a press release.</td></tr>
-      <tr><td>3</td><td><strong>LGA-scalable</strong></td><td>Each Local Government Area gets its own coordinator login. 774 LGAs. Same software. No re-build.</td></tr>
-      <tr><td>4</td><td><strong>Costs less than 1 siren</strong></td><td>The whole stack runs on Vercel + Railway + Africa's Talking. ₦ figures we can quote: hosting + telco aggregator licensing, under ₦5M/year per LGA at launch.</td></tr>
-      <tr><td>5</td><td><strong>Trained volunteers = existing public asset</strong></td><td>Off-duty nurses, NYSC doctors, vigilantes, FRSC. They're already out there. ResQ just <em>finds</em> them.</td></tr>
-    </tbody>
-  </table>
-
-  <blockquote class="layman"><em>"Government doesn't need to hire 10,000 paramedics. They just need to find the ones already in the neighbourhood. ResQ is the find."</em></blockquote>
-
-  <!-- 9 -->
-  <h2 id="s9"><span class="num">9.</span>What's Already Built vs Phase 2 <span class="layer-pill">Judges respect honesty</span></h2>
-
-  <div class="punchline"><b>Punchline</b><i>"This is not a mockup. This is running, end-to-end, on real telco infrastructure. The phase-2 roadmap is what scale looks like — not what we have to fix to demo."</i></div>
-
-  <h3>✅ Built and working (demo this)</h3>
-  <ul>
-    <li>USSD round-trip via Africa's Talking sandbox — real telco, real <code>*384*X#</code>-style code.</li>
-    <li>SMS confirmation + landmark reply.</li>
-    <li>AI voice call agent (ElevenLabs) with live transcript streaming.</li>
-    <li>Claude-powered triage (severity score + recommended responder count).</li>
-    <li>Claude-powered location extraction from natural speech.</li>
-    <li>Skill + Haversine distance dispatcher.</li>
-    <li>Coordinator dashboard with live map (MapLibre + OpenStreetMap, no Google bill).</li>
-    <li>Responder mobile-responsive web view.</li>
-    <li>Full Socket.io real-time backbone.</li>
-    <li>Postgres audit trail with 7 incident statuses, 5 responder statuses, 4 incident types.</li>
-  </ul>
-
-  <h3>🛠 Phase 2 (we know what's next)</h3>
-  <ul>
-    <li>React Native caller/responder apps (currently mobile-responsive web).</li>
-    <li>Live shortcode (<code>*XYZ#</code>) via NCC-licensed aggregator — 4–8 weeks of paperwork, not engineering.</li>
-    <li>MTN/Airtel cell-tower triangulation MOU — gives us coarse location even without SMS.</li>
-    <li>Multi-LGA role management for state-level commissioners.</li>
-    <li>Analytics dashboard (Recharts) — public response-time metrics.</li>
-  </ul>
-
-  <blockquote class="layman"><em>"What you're seeing is the engine. Phase 2 is the bodywork. The car already drives."</em></blockquote>
-
-  <!-- 10 -->
-  <h2 id="s10"><span class="num">10.</span>The Ask <span class="layer-pill">Close with this</span></h2>
-
-  <div class="punchline"><b>Punchline</b><i>"Give us this hackathon, and we walk out with the runway to put *384*1# on every Nigerian phone in 12 months."</i></div>
-
-  <p>Read these three lines almost verbatim:</p>
-  <blockquote>
-    <em>"We're not asking you to imagine a future. We built one. Tonight, with the prize from this hackathon, we do three things:</em>
-    <ol>
-      <li><em>We pay the NCC aggregator licence and turn the sandbox code into a live national shortcode.</em></li>
-      <li><em>We pilot in one LGA — Port Harcourt — for 90 days with 100 verified volunteers.</em></li>
-      <li><em>We measure response times against the existing 112 line and publish the numbers.</em></li>
-    </ol>
-    <em>If we beat 112, the rest writes itself. Every state commissioner in Nigeria will be on this dashboard within 18 months. Because the alternative is what we have today — and we all know what that looks like."</em>
-  </blockquote>
-
-  <p>End with the cold-open line, brought back:</p>
-  <blockquote><em>"Every second counts. Any phone. Any network. That's ResQ. Thank you."</em></blockquote>
-
-  <p style="text-align:center; font-size:22px; margin-top:18px;">🎤 Drop.</p>
-
-  <!-- 11 -->
-  <h2 id="s11"><span class="num">11.</span>Q&amp;A Prep <span class="layer-pill">Have these ready</span></h2>
-
-  <table>
-    <thead><tr><th>Likely question</th><th>Crisp answer</th></tr></thead>
-    <tbody>
-      <tr><td><em>"How do you verify responders aren't fake?"</em></td><td>Public registration form + manual coordinator verification + skill tags audited against credentials (NYSC ID, MDCN number, FRSC badge). The <code>verified</code> flag in the DB is the gate — only verified responders get dispatched.</td></tr>
-      <tr><td><em>"What if no responder is in the area?"</em></td><td>The AI triage <strong>detects zero-responder areas</strong> and auto-bumps severity, which escalates to the LGA coordinator for manual fallback (call ambulance, alert police). Coverage gaps become a <em>visible metric</em>, not a hidden failure.</td></tr>
-      <tr><td><em>"What about prank calls / abuse?"</em></td><td>Each USSD session is tied to a phone number + network code. Three false alarms from one number triggers a soft block. Coordinator can also mark <code>false_alarm</code> from the dashboard — full audit trail.</td></tr>
-      <tr><td><em>"Why won't telcos block you?"</em></td><td>We're not bypassing them. We use <strong>Africa's Talking</strong>, an NCC-licensed aggregator. The shortcode lives on real telco rails. We pay the rev-share.</td></tr>
-      <tr><td><em>"Why a hackathon project, not a startup?"</em></td><td>Both. ResQ is govtech infrastructure first, business model second. Revenue model in phase 2: per-LGA SaaS licence + corporate sponsorship of responder training.</td></tr>
-      <tr><td><em>"Why isn't this just 112 with a fresh coat of paint?"</em></td><td>112 is a phone number. ResQ is a <strong>matching engine</strong>. The difference is the same as a switchboard vs Uber.</td></tr>
-      <tr><td><em>"What's the moat?"</em></td><td>(a) The verified responder network — a two-sided graph that compounds. (b) The audit trail — once a government department commits to ResQ for accountability, switching cost is high. (c) The AI pipeline — tuned on Nigerian speech, Pidgin, and local landmarks.</td></tr>
-      <tr><td><em>"How is this different from emergency apps like Sety or RescueMe?"</em></td><td>They are <strong>smartphone-app-first</strong>. ResQ is <strong>USSD-first</strong>, with the app as an upgrade. We start with the 100% of Nigerians who have a phone, not the 30% who have a smartphone with data.</td></tr>
-    </tbody>
-  </table>
-
-  <!-- 12 -->
-  <h2 id="s12"><span class="num">12.</span>Speaker Notes — Cheat Sheet <span class="layer-pill">One page to print</span></h2>
-
-<pre>┌────────────────────────────────────────────────────────────────┐
-│  RESQ — PITCH CHEAT SHEET                                      │
-├────────────────────────────────────────────────────────────────┤
-│  HOOK:    "Dialling 112 in Nigeria is a coin-toss.             │
-│            We turned the coin into an answer."                 │
-│                                                                │
-│  PROBLEM: 112 broken. Apps need data. Responders invisible.    │
-│                                                                │
-│  SOLUTION: One dial → AI triage → nearest verified volunteer   │
-│            → live coordinator dashboard.                       │
-│                                                                │
-│  4 LAYERS: USSD · Voice AI · Automation · GovDashboard         │
-│                                                                │
-│  DEMO:    Dial *384*1# → pick 1 → pin lights up dashboard      │
-│           → responder phone buzzes → tap ACCEPT → map moves.   │
-│           Under 15 seconds end-to-end.                         │
-│                                                                │
-│  GOVTECH: Universal access · audit trail · LGA-scalable        │
-│           · cheap · uses existing volunteers.                  │
-│                                                                │
-│  ASK:     Aggregator licence + 90-day Port Harcourt pilot      │
-│           + publish the numbers vs 112.                        │
-│                                                                │
-│  CLOSER:  "Every second counts. Any phone. Any network."       │
-└────────────────────────────────────────────────────────────────┘</pre>
-
-  <!-- 13 -->
-  <h2 id="s13"><span class="num">13.</span>Tone Tips for Delivery</h2>
-
-  <ul>
-    <li><strong>Don't say "we built an AI emergency response platform."</strong> Say <em>"we built the thing that should have been 112."</em> The judges hear the first phrase 20 times a day.</li>
-    <li><strong>Hold the feature phone the entire pitch.</strong> It is your single best prop. Every time you say "any phone", point at it.</li>
-    <li><strong>Use one Nigerian-specific noun per minute.</strong> <em>Mushin. Aba Road. NYSC. Buka. Lekki Phase 1.</em> It signals that you built this for <em>here</em>, not for a Silicon Valley accelerator.</li>
-    <li><strong>Slow down on the audit trail line.</strong> That's the line that wins the govtech category. Pause. Let it land.</li>
-    <li><strong>End on the cold open.</strong> <em>"Every second counts. Any phone. Any network."</em> Don't add anything after it. Walk away from the mic.</li>
-  </ul>
-
-  <footer>
-    <p class="tag">ResQ — because every second counts.</p>
-  </footer>
 </div>
+
+<div class="nav" id="nav"></div>
+<div class="nav__hint">← → · space · click</div>
+
+<script>
+  (function () {
+    const slides = Array.from(document.querySelectorAll('.slide'));
+    const nav = document.getElementById('nav');
+    let current = 0;
+
+    slides.forEach((_, i) => {
+      const dot = document.createElement('span');
+      dot.className = 'nav__dot' + (i === 0 ? ' nav__dot--active' : '');
+      dot.addEventListener('click', () => go(i));
+      nav.appendChild(dot);
+    });
+
+    function go(i) {
+      if (i < 0 || i >= slides.length) return;
+      slides[current].classList.remove('slide--active');
+      nav.children[current].classList.remove('nav__dot--active');
+      current = i;
+      slides[current].classList.add('slide--active');
+      nav.children[current].classList.add('nav__dot--active');
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault(); go(current + 1);
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault(); go(current - 1);
+      } else if (e.key === 'Home') { go(0); }
+      else if (e.key === 'End') { go(slides.length - 1); }
+    });
+
+    slides.forEach((slide, i) => {
+      slide.addEventListener('click', () => {
+        if (i === current) go(current + 1);
+      });
+    });
+
+    if (new URLSearchParams(location.search).has('notes')) {
+      document.body.classList.add('show-notes');
+    }
+  })();
+</script>
+
 </body>
 </html>

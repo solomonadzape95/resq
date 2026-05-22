@@ -239,23 +239,29 @@ function SimulatorInner() {
           </div>
 
           <PhoneFrame carrier={NETWORK_CODE} status={phoneStatus}>
-            <div className="my-3 h-52 rounded-sm border-2 border-neutral-900 bg-black/70 p-0 font-mono text-sm text-emerald-300">
+            {/* When a voicemail or incoming-call overlay is showing, the
+                phone screen takes over the full frame so the keypad / call
+                button below it does not bleed through. */}
+            <div
+              className={`my-3 rounded-sm border-2 border-neutral-900 bg-black/70 font-mono text-sm text-emerald-300 ${
+                voicemail || incoming ? "h-96" : "h-52"
+              }`}
+            >
               <div className="h-full p-3">{screenContent}</div>
             </div>
-            {mode === "ussd" ? (
-              <Keypad
-                onKey={onKey}
-                onCall={onCall}
-                onHangup={onHangup}
-                callEnabled={callEnabled && !voicemail}
-                callActive={callActive || Boolean(voicemail)}
-              />
-            ) : (
-              <CallModeControls
-                onPlace={onCall}
-                disabled={Boolean(voicemail) || Boolean(incoming)}
-              />
-            )}
+            {!voicemail && !incoming ? (
+              mode === "ussd" ? (
+                <Keypad
+                  onKey={onKey}
+                  onCall={onCall}
+                  onHangup={onHangup}
+                  callEnabled={callEnabled}
+                  callActive={callActive}
+                />
+              ) : (
+                <CallModeControls onPlace={onCall} disabled={false} />
+              )
+            ) : null}
           </PhoneFrame>
         </div>
 

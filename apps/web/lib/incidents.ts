@@ -99,6 +99,66 @@ export const STATUS_VISUAL: Record<IncidentStatus, StatusVisual> = {
   },
 };
 
+// Bounding boxes for the three cities ResQ currently covers. Each city
+// gets its own coordinator console; incidents and responders outside the
+// box are filtered out so an LGA coordinator never sees out-of-area noise.
+export interface CityBounds {
+  id: string;
+  label: string;
+  lat: [number, number];
+  lng: [number, number];
+  centre: [number, number];
+  zoom: number;
+}
+
+export const CITIES: CityBounds[] = [
+  {
+    id: "port-harcourt",
+    label: "Port Harcourt",
+    lat: [4.60, 5.00],
+    lng: [6.85, 7.20],
+    centre: [4.82, 7.04],
+    zoom: 11,
+  },
+  {
+    id: "lagos",
+    label: "Lagos (Yaba / Mainland)",
+    lat: [6.35, 6.70],
+    lng: [3.15, 3.60],
+    centre: [6.51, 3.38],
+    zoom: 11,
+  },
+  {
+    id: "nsukka",
+    label: "Nsukka (UNN)",
+    lat: [6.75, 6.95],
+    lng: [7.30, 7.55],
+    centre: [6.86, 7.40],
+    zoom: 12,
+  },
+];
+
+export const ALL_CITIES_ID = "all";
+
+export function findCity(id: string): CityBounds | null {
+  return CITIES.find((c) => c.id === id) ?? null;
+}
+
+export function isInCity(
+  lat: number | null | undefined,
+  lng: number | null | undefined,
+  city: CityBounds | null,
+): boolean {
+  if (!city) return true;
+  if (lat == null || lng == null) return false;
+  return (
+    lat >= city.lat[0] &&
+    lat <= city.lat[1] &&
+    lng >= city.lng[0] &&
+    lng <= city.lng[1]
+  );
+}
+
 export function timeAgo(iso: string): string {
   const diff = (Date.now() - new Date(iso).getTime()) / 1000;
   if (diff < 60) return `${Math.floor(diff)}s ago`;

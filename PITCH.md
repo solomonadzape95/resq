@@ -1,451 +1,312 @@
-# 🚨 ResQ — Hackathon Pitch Overview
+# 🚨 ResQ — Pitch Speaker Notes
 
 > *"Every second counts. Any phone. Any network."*
-> Nigeria's community-powered emergency response network — built for the people who can't afford to wait.
+> What Nigeria's 112 should have been — built as **govtech public infrastructure**, not a startup.
 
-This document is **what to say**, not a script. Read it, internalise it, then deliver it in your own voice. Each section has a 1-line "punchline" you can lift verbatim if you forget the rest.
+**This document is not a script.** Read it, internalise it, then deliver it in your own words. Each slide has a one-line keyword reel you can lift verbatim if you blank.
 
----
+- **Total run time:** ~6:45 (range 6:30 – 7:15) — fits the 5–8 minute slot.
+- **Slide deck:** `PITCH.html` (project that; arrow-keys to navigate). Append `?notes` to see speaker notes live.
+- **Print to PDF:** Open `PITCH.html` → Cmd-P → Save as PDF → replaces `smart-challenge-pitch.pdf`.
 
-## 0. The Cold Open (30 seconds — open with this)
+## Speaker split
 
-**Punchline:** *"In Nigeria today, dialling 112 is a coin-toss. We turned that coin into a guaranteed answer — on any phone, on any network, in under 10 seconds."*
-
-Walk on stage. Hold up a feature phone (Nokia / Itel, whatever's cheap). Then hold up an iPhone. Say:
-
-> *"Tonight, someone in Mushin is having a heart attack. Their grandmother grabs the phone next to the bed. It's this one (hold up the feature phone). It has no internet. No app store. No GPS. The official emergency line either doesn't pick up, or sends her in a circle. She has 4 minutes before brain death.*
->
-> *We built ResQ so that in those 4 minutes, she dials a 6-digit code, presses '1', and a trained doctor 800 metres away is already on the way — while a government coordinator in Abuja watches the whole rescue happen on a live map.*
->
-> *This isn't a future-tech demo. It's running right now. Let me show you."*
-
-> Tip: hold the feature phone for the whole pitch. It becomes a visual anchor — "every feature we ship works on **this**".
-
----
-
-## 1. The Problem — Why Nigeria's emergency system is broken
-
-**Punchline:** *"112 is broken. 911 is American. Nigeria needs its own answer — and it has to start from a feature phone."*
-
-Three facts to drop in:
-
-1. 🚑 **Nigeria has no working unified emergency number.** 112 exists on paper. In practice, call drop rates are sky-high, dispatch is manual, and most LGAs (Local Government Areas) have no integration at all.
-2. 📵 **~60% of Nigerian phones are feature phones or smartphones with no data credit at the moment of crisis.** An "emergency app" that needs the Play Store is an emergency app for the wealthy.
-3. 🏥 **First responders are already there — they're just invisible.** Every neighbourhood has off-duty nurses, NYSC doctors, vigilante security, retired firefighters. The problem isn't supply. It's matching.
-
-> Illustration — the gap:
->
-> ```
->   Citizen in crisis              The "system"            Help arrives
->   ───────────────────            ────────────             ────────────
->   📞 dials 112        ──×──►   ❌ no answer        ─────► 🪦  too late
->   📞 calls relative   ──?──►   📞 calls another    ─────► ⏱  35–90 min
->   📱 posts on Twitter ──?──►   🤷 strangers retweet ────► 🤷  maybe
-> ```
->
-> ResQ collapses all three lanes into one: **dial → matched → on the way, in under a minute.**
-
----
-
-## 2. The Solution in One Sentence
-
-**Punchline:** *"ResQ is one phone number that turns any caller into a verified emergency, finds the nearest trained volunteer, and puts a government coordinator on the same live screen as the rescue."*
-
-Three actors. One pipeline.
-
-```
-┌──────────────┐        ┌─────────────────┐        ┌────────────────────┐
-│  THE CALLER  │  ────► │   THE RESCUER   │  ◄──── │ THE GOVT COORDINATOR│
-│ (any phone)  │        │ (nearest verified│        │  (live dashboard)  │
-│              │        │   volunteer)    │        │                    │
-└──────────────┘        └─────────────────┘        └────────────────────┘
-        ▲                        ▲                          ▲
-        │                        │                          │
-        └────────── ResQ pipeline (USSD + Voice AI + Auto-dispatch) ──────┘
-```
-
-ResQ has **four layers** stacked on top of each other. Each one works alone. Together they win the hackathon.
-
-| Layer | What it does | Why a layman cares |
+| | Presenter A — *The Story* | Presenter B — *The GovTech + Ask* |
 |---|---|---|
-| **1. USSD** | Dial `*384*1#` — pick emergency type — done. | Works on a ₦4,000 Nokia. No app. No internet. No data. |
-| **2. Voice AI** | If they can talk, an AI agent picks up and *converses* — asking the right questions. | The caller can be panicking. The AI stays calm, in English or Pidgin. |
-| **3. Automation** | AI scores severity, extracts the location from speech, ranks the nearest skilled responders, and dispatches them instantly. | No human delay between dial and dispatch. The grandmother doesn't wait on hold. |
-| **4. Dashboard** | A government coordinator sees every incident, every responder, the live transcript, and the moving pin — in real time. | Government finally has **eyes** on what's happening in their LGA, in real time. |
+| Slides | 1 → 5 | 6 → 11 |
+| Window | 0:00 – 3:10 | 3:10 – 6:45 |
+| Voice | Empathetic, narrative, slows down on the citizen story | Confident, structured, slows down on the audit trail line |
+
+**Stage prop:** Presenter A holds a feature phone for the entire pitch. Every time anyone says *"any phone"*, point at it.
 
 ---
 
-## 3. Layer 1 — The USSD (the part that makes this Nigerian)
+## SLIDE 1 · Title & Hook  ·  *Presenter A · 25s*
 
-**Punchline:** *"If you can dial, you can be rescued. That's the whole pitch — and that's why this is govtech, not just tech."*
+🚨 *Visual: ResQ wordmark, badge "GovTech · Emergency Response · Nigeria", siren icon.*
 
-USSD is the boring grey text menu you see when you check your airtime balance. It is **the most accessible technology on the planet**. It works on every phone built since 1996. It works without data. It works in a buka in Onitsha and a fishing village in Bonny.
+**On screen**
+- `ResQ` wordmark, huge
+- Tagline italic: *"Every second counts. Any phone. Any network."*
+- Lead paragraph: *"What Nigeria's 112 should have been — one dial connects any caller to the nearest trained responder, while a government coordinator watches the rescue happen live."*
 
-### What the user actually sees
+**Say in your own words**
+> ResQ is what 112 should have been in Nigeria. One dial, any phone, any network — a trained responder is on the way in seconds, and a government coordinator is watching the rescue on a live map.
 
-When they dial `*384*1#`, here is the **literal screen** that appears (this is the real text from `apps/api/src/routes/ussd.ts`):
-
-```
-╭───────────────────────────╮          ╭───────────────────────────╮
-│  ResQ Emergency Alert     │          │  ResQ Alert Sent.         │
-│                           │          │                           │
-│  Choose emergency type:   │   ───►   │  Is this your number?     │
-│  1. Medical               │          │  1. Yes                   │
-│  2. Fire                  │          │  2. No, calling for       │
-│  3. Crime / Security      │          │     someone               │
-│  4. Road Accident         │          │                           │
-╰───────────────────────────╯          ╰───────────────────────────╯
-            │                                       │
-            ▼                                       ▼
-       (caller picks 1)                  ╭───────────────────────────╮
-                                         │  ResQ Alert Sent.         │
-                                         │  Medical emergency        │
-                                         │  reported.                │
-                                         │  Responders being         │
-                                         │  contacted.               │
-                                         │  Keep this line open.     │
-                                         │  Reply to incoming SMS    │
-                                         │  with your nearest        │
-                                         │  landmark.                │
-                                         ╰───────────────────────────╯
-```
-
-Two screens. Five seconds. Done.
-
-### Three things to brag about here
-
-1. **"Is this your number?" / "No, calling for someone."** — This is the question no one else asks. In Nigeria, **people share phones**. If you collapse from a stroke, your neighbour grabs *their* phone. ResQ knows to route the SMS to the right person.
-2. **Landmark-by-SMS.** A feature phone has no GPS. So after the USSD ends, we send an SMS asking *"Reply with your nearest landmark."* The caller texts back **"Behind the big mosque on Aba Road"** — and our AI converts that into a map pin. The grandmother doesn't need to know what latitude is.
-3. **Placeholder pin on dial.** The moment they press '1', a pin lands on the coordinator's map *before the call even ends* — so the coordinator can already start watching. No dead air on the government side.
-
-> **Layman line:** *"USSD is the same menu you see when you check airtime. We're using it to save lives. If your phone can ask for your balance, your phone can call ResQ."*
+**Keywords:** `ResQ` · `112` · `every second counts` · `any phone` · `any network` · `government coordinator` · `live`
 
 ---
 
-## 4. Layer 2 — The Voice Call (where AI does the panicking for you)
+## SLIDE 2 · The Problem  ·  *Presenter A · 40s*
 
-**Punchline:** *"If the caller can speak, the AI picks up, talks them through it in plain English, and writes the report while they're still on the line."*
+📵 *Visual: three icon cards — phone-off, signal-zero, users-round.*
 
-For callers with airtime to make a voice call (or for smartphone users), ResQ also exposes a **voice line**. Here's what happens — and why it's wild:
+**On screen**
+- Header: *"Nigeria's emergency system is broken."*
+- **Card 1 · 112 doesn't pick up** — drop rates, no LGA integration, manual dispatch.
+- **Card 2 · Most phones can't run an app** — feature phones, no data at the moment of crisis.
+- **Card 3 · Responders exist — invisibly** — off-duty doctors, nurses, NYSC corps members, fire wardens, vigilantes.
 
-### The flow
+**Say in your own words**
+> Three failures stack into one outcome. Most Nigerians dial 112 and hear silence. Most phones in the country can't even open an emergency app. And yet — every street has trained people who could help. They have no way to be reached. The supply is already there. The system to find them isn't.
 
-```
-   📞 Caller dials       🤖 ResQ AI agent       📝 Live transcript       🖥  Coordinator dashboard
-   ──────────────       ──────────────────       ──────────────────       ──────────────────────
-        │                       │                        │                          │
-        │  "Hello? Help!"       │                        │                          │
-        ├──────────────────────►│                        │                          │
-        │                       │  "Stay calm. Are you   │                          │
-        │                       │   the patient? Where   │                          │
-        │                       │   are you?"            │                          │
-        │◄──────────────────────┤                        │                          │
-        │                       │                        │                          │
-        │  "My dad… chest…      │                        │                          │
-        │   we're near Shoprite │                        │                          │
-        │   in Lekki Phase 1"   │                        │                          │
-        ├──────────────────────►│  (stream every line)   │                          │
-        │                       ├───────────────────────►│   (stream every line)    │
-        │                       │                        ├─────────────────────────►│
-        │                       │                        │                          │  ← coordinator
-        │                       │                        │                          │     watches the
-        │                       │                        │                          │     conversation
-        │                       │                        │                          │     live
-```
-
-### Three magic moments to point at
-
-1. **The AI agent (ElevenLabs voice + Claude brain) picks up the call in milliseconds.** No queue. No "Press 1 for English". The caller hears a calm human-sounding voice that says *"You're connected to ResQ. Tell me what's happening."*
-2. **The transcript streams live to the dashboard.** As the caller speaks, the words appear letter-by-letter on the coordinator's screen — *and on the responder's phone too*. The volunteer driving to the scene already knows the patient is bleeding, what's bleeding, and that the husband is on-scene.
-3. **The AI extracts structured detail from natural speech:**
-   - "near Shoprite in Lekki Phase 1" → map pin on the dashboard
-   - "my dad, 67, chest pain, sweating" → victim age, severity, symptoms
-   - "I think he's getting worse" → urgency signal that bumps the severity score
-
-> **Layman line:** *"You don't have to know what to say. The AI knows what to ask. And while you're still answering, help is already moving."*
+**Keywords:** `112 doesn't work` · `feature phone` · `no data` · `invisible responders` · `the supply is already there`
 
 ---
 
-## 5. Layer 3 — The Automation (the part that wins the hackathon)
+## SLIDE 3 · What ResQ Is  ·  *Presenter A · 40s*
 
-**Punchline:** *"From dial to dispatch in under 10 seconds — with zero humans in the loop. The first time a person is involved is when the volunteer accepts the alert on their phone."*
+🧭 *Visual: 3-actor triangle — citizen, responder, coordinator.*
 
-This is the section where the judges should lean forward. Show the diagram below on screen.
+**On screen**
+- Big sentence: *"ResQ is not an app. It is the matching engine between citizens in crisis and the trained responders already nearby — visible to government in real time."*
+- Three actor cards: 👤 The Citizen · 🛡️ The Responder · 🖥️ The Coordinator (state / LGA).
 
-```
-       ┌────────────────────────────────────────────────────────────┐
-       │                  ResQ AUTOMATION ENGINE                    │
-       │                                                            │
-       │   ┌───────────┐    ┌──────────────┐    ┌──────────────┐    │
-       │   │  TRIAGE   │    │  LOCATION    │    │   DISPATCH   │    │
-       │   │  (Claude) │    │  EXTRACTOR   │    │  (matcher)   │    │
-       │   │  ───────  │    │  ───────────│    │  ──────────  │    │
-       │   │ severity  │    │ "near big    │    │ skill match  │    │
-       │   │ score 1–10│    │  mosque" →   │    │ + Haversine  │    │
-       │   │ + label   │    │   lat,lng    │    │ + radius     │    │
-       │   └─────┬─────┘    └───────┬──────┘    └──────┬───────┘    │
-       │         │                  │                  │            │
-       │         └──────────┬───────┴──────────┬───────┘            │
-       │                    ▼                  ▼                    │
-       │            ┌───────────────┐  ┌────────────────────┐       │
-       │            │ INCIDENT CARD │  │ PUSH TO RESPONDERS │       │
-       │            │  on dashboard │  │   (real-time WS)   │       │
-       │            └───────────────┘  └────────────────────┘       │
-       └────────────────────────────────────────────────────────────┘
-                       ▲                              │
-                       │                              ▼
-                  USSD / Voice / SMS              📱 Volunteer phone:
-                                                  "Medical, 800m away,
-                                                   tap to ACCEPT"
-```
+**Say in your own words**
+> ResQ is not an app. It's the layer between three people who never speak to each other today. The citizen calling for help. The trained responder already a few streets away. And the government coordinator who is supposed to be accountable for the response. We connect all three in seconds.
 
-### Walk the judges through each box
-
-**Box 1 — AI Triage (`services/openrouter.ts`)**
-Claude 3.5 Sonnet looks at:
-- Incident type (medical / fire / crime / accident)
-- Time of day — *"2 AM medical" is more critical than "2 PM medical"*
-- How many responders are nearby — *if zero responders are within 10 km, the severity is auto-bumped*
-
-It returns: `{ severity: "high", triage_score: 8, responders_recommended: 2 }`. Color-coded on the dashboard.
-
-**Box 2 — Location extractor**
-For every chunk of transcript, the AI pulls out:
-- `location_text`: the exact phrase the caller used
-- `landmarks`: an array of nearby reference points
-- `victim_details`: age, count, severity
-- `urgency_signals`: "bleeding won't stop", "not breathing"
-
-The map pin **moves in real time** as the caller adds detail. The judges will *gasp* when you show that.
-
-**Box 3 — Dispatcher (`services/matcher.ts`)**
-For every responder in the database, ResQ checks:
-- ✅ Are they `available` and `verified`?
-- ✅ Do their skills match? (`medical` for medical, `fire_warden` for fire, etc.)
-- ✅ Are they within their declared service radius? (Haversine distance)
-- ✅ Rank by distance, take top 5
-
-Push to all 5 phones simultaneously via WebSocket. **First to accept gets the job.**
-
-> **Layman line:** *"The AI does in 3 seconds what a human dispatcher does in 3 minutes — and it never goes on lunch break."*
+**Keywords:** `matching engine` · `not an app` · `citizen` · `responder` · `government coordinator` · `real time` · `accountable`
 
 ---
 
-## 6. Layer 4 — The Coordinator Dashboard (the govtech part)
+## SLIDE 4 · How a Call Happens  ·  *Presenter A · 50s*
 
-**Punchline:** *"For the first time, a state emergency commissioner has a single screen that shows every active emergency, every responder, every conversation — live."*
+📞 *Visual: two parallel columns — USSD path (left), voicemail path (right).*
 
-Show a screenshot here. Or, better, **share the screen and click through the live demo dashboard**.
+**On screen**
+- **Any phone · USSD**
+  - `#️⃣` Dial `*384*1#`
+  - `📲` ResQ rings them back in ~3 seconds
+  - `🎙️` They describe what happened — the line records silently
+- **Smartphone · direct call**
+  - `📞` Tap the ResQ call button
+  - `📭` Leave a voicemail — AI listens silently
+  - `✅` Same dashboard, same dispatch
+- Footer: *"The caller never has to know what to say."*
 
-### What's on the screen
+**Say in your own words**
+> Two ways to reach us. A feature-phone user dials a short code — three seconds later we ring them back, and they just talk. A smartphone user taps a button and leaves a voicemail. In both cases the caller doesn't have to know what to say. The line records, the AI does the rest.
 
-```
-┌────────────────────────────────────────────────────────────────────────────────┐
-│  🚨 ResQ  |  Port Harcourt LGA  |  ●  LIVE      🔴 4 critical  ✅ 12 responders │
-├──────────────────────┬─────────────────────────────────────────────┬──────────┤
-│                      │                                             │          │
-│  ACTIVE INCIDENTS    │                LIVE MAP                     │ INCIDENT │
-│  ───────────────     │       ───────────────────────────           │  DETAIL  │
-│  🔴 Medical          │                                             │ ──────── │
-│     07:42 · Lekki    │         📍 (red pin) Medical                │ Caller:  │
-│     score 9/10       │              🟢 ─── 🟢 (responders          │ +234801…│
-│     2 responders     │                       en route)             │          │
-│  ───────────────     │                                             │ Triage:  │
-│  🟠 Fire             │         📍 (orange pin) Fire                │  9/10    │
-│     07:38 · D-Line   │              🟢 (1 responder accepted)      │ Critical │
-│     score 7/10       │                                             │          │
-│  ───────────────     │         📍 (blue pin) Crime                 │ LIVE     │
-│  🔵 Crime            │                                             │ TRANS-   │
-│     07:35 · Diobu    │                                             │ CRIPT:   │
-│     score 5/10       │  [open map · zoom · filter responders]      │ "We are  │
-│                      │                                             │  near    │
-│                      │                                             │  the big │
-│                      │                                             │  mosque…"│
-│                      │                                             │          │
-│                      │                                             │ [Call    │
-│                      │                                             │  caller] │
-│                      │                                             │ [Mark    │
-│                      │                                             │  resolved]│
-└──────────────────────┴─────────────────────────────────────────────┴──────────┘
-```
-
-### What the coordinator can do (and why it's govtech)
-
-1. **See every incident in their LGA** — colour-coded by severity, sorted by AI triage score.
-2. **Watch the rescue happen on the map** — responder pins move in real time as they drive to the scene.
-3. **Read the call transcript live** — no need to wait for a report. They can override if the AI misclassified.
-4. **Push to talk** — one button initiates a callback to the caller through Africa's Talking voice.
-5. **Audit trail by default** — every state change (`new` → `triaged` → `assigned` → `active` → `resolved`) is timestamped to the millisecond. *This is the line that wins the govtech category.*
-
-### The status pipeline (show this — judges love a flow)
-
-```
-   new ──► triaged ──► assigned ──► active ──► resolved
-                                   │
-                                   ├──► false_alarm   (coordinator marks)
-                                   └──► cancelled      (caller withdraws)
-```
-
-Every transition is logged with a timestamp, the actor, and the previous state. **You can't lose evidence. You can't change history. You can audit a state commissioner's response time the same way you'd audit a bank ledger.**
-
-> **Layman line:** *"For the first time, government can prove it showed up — or be held accountable when it didn't. That's not just tech. That's reform."*
+**Keywords:** `USSD` · `callback in 3 seconds` · `voicemail` · `any phone` · `the line records` · `no script needed`
 
 ---
 
-## 7. The End-to-End Demo Story (run this live)
+## SLIDE 5 · AI in the Loop  ·  *Presenter A · 35s*
 
-**Punchline:** *"Watch this. From dial to dispatch in 8 seconds. No edits, no cuts."*
+🧠 *Visual: three icon blocks — brain (triage), map-pin (location), circle-alert (urgency).*
 
-This is the story arc for the live demo. **Rehearse it three times.** Show all three screens side-by-side: the dialer (phone), the coordinator dashboard, and a second phone showing the responder view.
+**On screen**
+- **Triage** — severity score 1–10, type, recommended responders
+- **Location extraction** — *"behind the big mosque on Aba Road"* → geocoded pin
+- **Urgency signals** — *"bleeding"*, *"not breathing"* auto-bump severity
+- Quote bubble: *"My dad, 67, chest pain, we are near Shoprite Lekki Phase 1."*
+- Footer: *"Pin lands at Shoprite. Severity high. Two responders ranked by distance. **No human typed a word.**"*
+
+**Say in your own words**
+> While the caller is still speaking, the AI is already triaging. It pulls landmarks out of natural speech, drops the pin on the map, ranks severity, and flags urgency words. The dashboard fills in live. No human is typing.
+
+**Keywords:** `AI triage` · `severity score` · `location extraction` · `landmarks` · `no human typing`
+
+### ✋ HANDOFF — Presenter A nods to Presenter B
+
+---
+
+## SLIDE 6 · Auto-Dispatch  ·  *Presenter B · 40s*
+
+🎯 *Visual: 4-step flow — incident → match → notify → accept.*
+
+**On screen**
+- **Incident** — type + location + severity
+- **Match** — skill + Haversine distance + availability radius
+- **Notify** — push to the nearest 5 verified responders, simultaneously
+- **Accept** — first to tap accept gets the job; others held as backup
+- Footer: *"No dispatcher on the phone. No call queue. No lunch break."*
+
+**Say in your own words**
+> The matcher takes the incident — say, medical — and checks every verified responder in the database. Skill match. Distance. On-duty. The nearest five get pinged at the same time. First to tap accept takes the job. There is no human dispatcher anywhere in this loop.
+
+**Keywords:** `matcher` · `verified` · `skill match` · `nearest five` · `first to accept` · `no dispatcher`
+
+---
+
+## SLIDE 7 · Coordinator Dashboard  ·  *Presenter B · 55s*
+
+🖥️ *Visual: dashboard mock — list left, live map centre, incident detail right; three icon callouts below.*
+
+**On screen**
+- **One screen per LGA** — every incident, every responder, every state change
+- **Immutable audit trail** — every transition timestamped; cannot be edited
+- **Public response-time metrics** — by LGA, by month
+- Mock shows: active incidents list, live map with status-coloured pins + responder diamonds + dashed match lines, side panel with triage score, live transcript, status workflow
+
+**Say in your own words**
+> This is the government's screen. Every active emergency in their LGA on a live map. Every responder pin moving toward the scene. The call transcript appearing word-by-word. Every status change — timestamped and immutable. The first time we've had a piece of public infrastructure where the response itself is auditable. A commissioner can prove they showed up. A citizen can prove they didn't.
+
+**Keywords:** `coordinator dashboard` · `LGA` · `live map` · `immutable audit trail` · `timestamped` · `public response-time metrics`
+
+> ⏸ **Slow down here.** This is the line that wins the govtech category. Pause after "auditable". Let it land.
+
+---
+
+## SLIDE 8 · Why This Is GovTech  ·  *Presenter B · 45s*
+
+🏛️ *Visual: 2×2 grid — accessibility, file-text, layers, users.*
+
+**On screen**
+- **Universal access** — works on the cheapest phone in the country
+- **Accountability built-in** — every action audited by default
+- **LGA-scalable** — same software for all 774 Local Government Areas
+- **Public asset, public good** — uses NYSC, FRSC, off-duty health workers, civil defence
+
+**Say in your own words**
+> This isn't a startup pitch. It's public infrastructure. It works on the cheapest phone in the country. Every response is audited by default. The same dashboard runs in all 774 LGAs with one configuration change. And it taps into people the government already pays — NYSC corps members, FRSC officers, off-duty health workers — instead of trying to hire ten thousand new paramedics.
+
+**Keywords:** `public infrastructure` · `universal access` · `audit by default` · `774 LGAs` · `existing public asset` · `NOT a startup pitch`
+
+---
+
+## SLIDE 9 · The Responder Network  ·  *Presenter B · 45s*
+
+🤝 *Visual: 4 responder icon rows + 2 keys (recruitment, stipend).*
+
+**On screen**
+- 🩺 **Off-duty doctors & nurses** (MDCN-verified, skill-tagged)
+- 🔥 **Fire wardens & civil defence** (cross-checked vs NSCDC)
+- 🛡️ **Security & police liaisons** (includes registered vigilantes)
+- ❤️ **NYSC, FRSC, Red Cross first aiders** (credentials uploaded at signup)
+- **Recruitment** — Public sign-up at resq.ng → credential check → verified flag → activated in the matching pool
+- **A modest monthly stipend** — Weighted by verified response activity. Performance-aligned. Not volunteer burnout — a **part-time public service**.
+
+**Say in your own words**
+> Our responders are the community itself. Off-duty doctors, nurses, NYSC corps members, fire wardens, vigilantes — people who already live on the street where the emergency happens. They register publicly on our site, we verify their credentials, and once they're verified they're in the matching pool. We pay them a modest monthly stipend, weighted by how many incidents they've actually shown up to. Not volunteers who burn out in six months — a part-time public service, paid for the value they provide.
+
+**Keywords:** `community responders` · `off-duty professionals` · `publicly recruited` · `verified` · `modest monthly stipend` · `performance-weighted` · `part-time public service` · `not volunteer burnout`
+
+> 💰 **If a judge asks "how much is the stipend?"** Answer in the Q&A appendix below. Don't quote numbers on stage.
+
+---
+
+## SLIDE 10 · Built vs Phase 2  ·  *Presenter B · 25s*
+
+🚀 *Visual: two columns — checks (built) vs rocket (Phase 2).*
+
+**On screen**
+- **Built & running now**: USSD intake with 3-second callback ring · voicemail flow with silent AI agent · AI triage + location extraction · skill + distance dispatcher · coordinator dashboard with audit trail · responder mobile view + match lines
+- **Phase 2 (paperwork, not engineering)**: NCC-licensed national shortcode · MTN / Airtel cell-tower triangulation MOU · State SEMA integrations · Native iOS / Android apps · Public response-time analytics
+
+**Say in your own words**
+> Everything I just showed you is built and running. The engine works. Phase 2 isn't engineering — it's paperwork: the national shortcode, MOUs with telcos, agreements with state SEMAs.
+
+**Keywords:** `built and running` · `engine works` · `Phase 2 is paperwork` · `shortcode` · `telco MOU` · `SEMA`
+
+---
+
+## SLIDE 11 · The Ask + Close  ·  *Presenter B · 25s*
+
+🎤 *Visual: three asks across the middle + huge "ResQ." closing.*
+
+**On screen**
+- 🔑 **License the shortcode** (NCC, via aggregator)
+- 🚩 **90-day Port Harcourt pilot** (one LGA, 100 verified responders)
+- 📊 **Publish response times vs 112**
+- ResQ. — *Every second counts. Any phone. Any network.*
+
+**Say in your own words**
+> Three asks. License the shortcode. Pilot ResQ in one Port Harcourt LGA for 90 days. Publish the response times against 112. If we beat 112 — and we will — the rest of Nigeria writes itself. ResQ. Every second counts. Any phone. Any network. Thank you.
+
+**Keywords:** `license shortcode` · `90-day pilot` · `publish numbers` · `beat 112` · `tagline`
+
+> 🎤 **Don't add anything after the tagline.** Walk away from the mic.
+
+---
+
+## Cheat Sheet (print this — one page, both presenters)
 
 ```
-   T+0s    📞 Open AT simulator (or real phone). Dial *384*1#.
-   T+1s    Menu appears: pick 1 (Medical).
-   T+3s    Press 1 (yes, my number).
-   T+4s    USSD ends — message: "Responders being contacted."
-   T+4s    🖥  Dashboard: red Medical pin appears in Port Harcourt.
-                AI triage score appears: "Severity: high · 8/10"
-   T+5s    📱 Responder phone (volunteer): incident card pops up.
-                "Medical · 800m · tap to ACCEPT"
-   T+6s    Responder taps ACCEPT.
-   T+7s    🖥  Dashboard: responder pin turns green, joins the incident.
-                Incident status flips: new → triaged → assigned → active.
-   T+8s    Coordinator clicks "Push transcript" — paste a one-line caller
-                quote ("we are near the big mosque on Aba Road").
-   T+9s    🖥  Map pin **moves** to the actual mosque location.
-                📱 Responder phone shows the same transcript line.
-   T+15s   Click "Mark resolved." Audit trail ticks over.
+┌──────────────────────────────────────────────────────────────────────┐
+│  RESQ · PITCH CHEAT SHEET · 6:45 total · 11 slides · 2 presenters    │
+├──────────────────────────────────────────────────────────────────────┤
+│  HOOK (A):    ResQ — every second counts, any phone, any network.    │
+│                                                                      │
+│  PROBLEM (A):  112 doesn't pick up. Most phones can't run an app.    │
+│                Responders exist — but they are invisible.            │
+│                                                                      │
+│  RESQ IS (A):  Matching engine. Citizen ↔ Responder ↔ Coordinator.   │
+│                Visible to government in real time. NOT an app.       │
+│                                                                      │
+│  CALL FLOW (A): USSD → callback in 3s OR voicemail direct.           │
+│                The line records. No script needed.                   │
+│                                                                      │
+│  AI (A):      Triage score · location extraction · urgency signals.  │
+│                No human typing.                                      │
+│  ─── HANDOFF ─────────────────────────────────────────────────────   │
+│  DISPATCH (B): Match → notify nearest 5 verified → first to accept.  │
+│                No dispatcher in the loop.                            │
+│                                                                      │
+│  DASHBOARD (B): One screen per LGA. Live map. Immutable audit trail. │
+│                 [PAUSE on "auditable" — this is the govtech line.]   │
+│                                                                      │
+│  GOVTECH (B):  Public infrastructure. Universal access. 774 LGAs.    │
+│                Uses people government already pays.                  │
+│                                                                      │
+│  RESPONDERS (B): Doctors · fire wardens · security · NYSC / FRSC.    │
+│                  Publicly recruited. Verified. Modest monthly        │
+│                  stipend, performance-weighted. Part-time service.   │
+│                                                                      │
+│  BUILT (B):    Engine works. Phase 2 is paperwork.                   │
+│                                                                      │
+│  ASK (B):     1. License shortcode  2. 90-day PH pilot               │
+│                3. Publish numbers vs 112.                            │
+│                                                                      │
+│  CLOSER:      "Every second counts. Any phone. Any network."         │
+│               Pause. Walk off.                                       │
+└──────────────────────────────────────────────────────────────────────┘
 ```
 
-End the demo by saying:
-
-> *"That's the full cycle — citizen, volunteer, government — in under 15 seconds. Today, on the official 112 line, the caller is usually still on hold."*
-
 ---
 
-## 8. Why This Is GovTech Gold (the closer)
+## Q&A appendix — likely judge questions
 
-**Punchline:** *"ResQ isn't an app. It's a piece of public infrastructure that costs less than a single ambulance and works from day one in every LGA in Nigeria."*
+Prepare these. The first three are the most common.
 
-Five points. Hit them like nails.
-
-| # | The govtech win | Why judges care |
-|---|---|---|
-| 1 | **Universal access** | Works on a ₦4,000 phone. No digital divide. Constitutional-grade access to emergency services. |
-| 2 | **Accountability built-in** | Every incident has an immutable audit trail. Response times become a public metric, not a press release. |
-| 3 | **LGA-scalable** | Each Local Government Area gets its own coordinator login. 774 LGAs. Same software. No re-build. |
-| 4 | **Costs less than 1 siren** | The whole stack runs on Vercel + Railway + Africa's Talking. ₦ figures we can quote: hosting + telco aggregator licensing, under ₦5M/year per LGA at launch. |
-| 5 | **Trained volunteers = existing public asset** | Off-duty nurses, NYSC doctors, vigilantes, FRSC. They're already out there. ResQ just *finds* them. |
-
-> **Layman line:** *"Government doesn't need to hire 10,000 paramedics. They just need to find the ones already in the neighbourhood. ResQ is the find."*
-
----
-
-## 9. What's Already Built vs Phase 2 (be honest, judges respect it)
-
-**Punchline:** *"This is not a mockup. This is running, end-to-end, on real telco infrastructure. The phase-2 roadmap is what scale looks like — not what we have to fix to demo."*
-
-### ✅ Built and working (demo this)
-
-- USSD round-trip via Africa's Talking sandbox — real telco, real `*384*X#`-style code.
-- SMS confirmation + landmark reply.
-- AI voice call agent (ElevenLabs) with live transcript streaming.
-- Claude-powered triage (severity score + recommended responder count).
-- Claude-powered location extraction from natural speech.
-- Skill + Haversine distance dispatcher.
-- Coordinator dashboard with live map (MapLibre + OpenStreetMap, no Google bill).
-- Responder mobile-responsive web view.
-- Full Socket.io real-time backbone.
-- Postgres audit trail with 7 incident statuses, 5 responder statuses, 4 incident types.
-
-### 🛠 Phase 2 (we know what's next)
-
-- React Native caller/responder apps (currently mobile-responsive web).
-- Live shortcode (`*XYZ#`) via NCC-licensed aggregator — 4–8 weeks of paperwork, not engineering.
-- MTN/Airtel cell-tower triangulation MOU — gives us coarse location even without SMS.
-- Multi-LGA role management for state-level commissioners.
-- Analytics dashboard (Recharts) — public response-time metrics.
-
-> **Layman line:** *"What you're seeing is the engine. Phase 2 is the bodywork. The car already drives."*
-
----
-
-## 10. The Ask (close the pitch with this)
-
-**Punchline:** *"Give us this hackathon, and we walk out with the runway to put `*384*1#` on every Nigerian phone in 12 months."*
-
-Read these three lines almost verbatim:
-
-> *"We're not asking you to imagine a future. We built one. Tonight, with the prize from this hackathon, we do three things:*
->
-> 1. *We pay the NCC aggregator licence and turn the sandbox code into a live national shortcode.*
-> 2. *We pilot in one LGA — Port Harcourt — for 90 days with 100 verified volunteers.*
-> 3. *We measure response times against the existing 112 line and publish the numbers.*
->
-> *If we beat 112, the rest writes itself. Every state commissioner in Nigeria will be on this dashboard within 18 months. Because the alternative is what we have today — and we all know what that looks like."*
-
-End with the cold-open line, brought back:
-
-> *"Every second counts. Any phone. Any network. That's ResQ. Thank you."*
-
-🎤 Drop.
-
----
-
-## 11. Q&A Prep (likely judge questions — have these ready)
-
-| Likely question | Crisp answer |
+| Question | Crisp answer |
 |---|---|
-| *"How do you verify responders aren't fake?"* | Public registration form + manual coordinator verification + skill tags audited against credentials (NYSC ID, MDCN number, FRSC badge). The `verified` flag in the DB is the gate — only verified responders get dispatched. |
-| *"What if no responder is in the area?"* | The AI triage **detects zero-responder areas** and auto-bumps severity, which escalates to the LGA coordinator for manual fallback (call ambulance, alert police). Coverage gaps become a *visible metric*, not a hidden failure. |
-| *"What about prank calls / abuse?"* | Each USSD session is tied to a phone number + network code. Three false alarms from one number triggers a soft block. Coordinator can also mark `false_alarm` from the dashboard — full audit trail. |
-| *"Why won't telcos block you?"* | We're not bypassing them. We use **Africa's Talking**, an NCC-licensed aggregator. The shortcode lives on real telco rails. We pay the rev-share. |
-| *"Why a hackathon project, not a startup?"* | Both. ResQ is govtech infrastructure first, business model second. Revenue model in phase 2: per-LGA SaaS licence + corporate sponsorship of responder training. |
-| *"Why isn't this just 112 with a fresh coat of paint?"* | 112 is a phone number. ResQ is a **matching engine**. The difference is the same as a switchboard vs Uber. |
-| *"What's the moat?"* | (a) The verified responder network — a two-sided graph that compounds. (b) The audit trail — once a government department commits to ResQ for accountability, switching cost is high. (c) The AI pipeline — tuned on Nigerian speech, Pidgin, and local landmarks. |
-| *"How is this different from emergency apps like Sety or RescueMe?"* | They are **smartphone-app-first**. ResQ is **USSD-first**, with the app as an upgrade. We start with the 100% of Nigerians who have a phone, not the 30% who have a smartphone with data. |
+| *"How is this different from emergency apps like Sety or RescueMe?"* | They're **smartphone-app-first**. We're **USSD-first**, with the smartphone path as an upgrade. We start from the 100% of Nigerians who have a phone, not the 30% who have a smartphone with data. |
+| *"Why won't telcos block you?"* | We're not bypassing them. We use Africa's Talking, an **NCC-licensed aggregator**. The shortcode lives on real telco rails. We pay the rev-share. |
+| *"How much is the stipend exactly?"* | We're modelling stipends against the average part-time wage in each state — finalising the figure with the SEMA partner before pilot. Designed to be **less than the cost of a single ambulance dispatch per responder per month** — so it's cheaper for government than the system that already fails. |
+| *"How do you verify responders aren't fake?"* | Public registration form + manual coordinator verification + skill tags audited against credentials (MDCN number, NYSC ID, FRSC badge, NSCDC record). The `verified` flag in the database is the gate — only verified responders get dispatched. |
+| *"What if no responder is in the area?"* | The AI **detects zero-responder areas** and auto-bumps severity, which escalates to the LGA coordinator for manual fallback. Coverage gaps become a *visible metric* on the dashboard, not a hidden failure. |
+| *"What about prank calls?"* | Every USSD session is tied to a phone number + network code. Three unconfirmed alerts from one number triggers a soft block. Coordinators can also mark `false_alarm` — full audit trail per number. |
+| *"Why isn't this just 112 with a coat of paint?"* | 112 is a phone number. ResQ is a **matching engine**. Same difference as a switchboard versus Uber. |
+| *"Why a hackathon project, not a startup?"* | It's govtech infrastructure first, business model second. Revenue model in Phase 2: per-LGA SaaS licence to state SEMAs + corporate sponsorship of responder training. The licence pays the responder stipends. |
+| *"What's the moat?"* | Three things: (a) the verified responder network — a two-sided graph that compounds; (b) the audit trail — once a government agency commits to ResQ for accountability, switching cost is high; (c) the AI pipeline tuned on Nigerian speech, Pidgin, and local landmarks. |
+| *"What's the data privacy story?"* | All call recordings stored encrypted; transcripts retained for the audit trail per Nigeria Data Protection Act. Caller can request deletion via the coordinator dashboard. No data sold to third parties — ever. |
 
 ---
 
-## 12. Speaker Notes — Cheat Sheet (one page to print)
+## Govtech anchor phrases (each appears at least once in the deck)
 
-```
-┌────────────────────────────────────────────────────────────────┐
-│  RESQ — PITCH CHEAT SHEET                                      │
-├────────────────────────────────────────────────────────────────┤
-│  HOOK:    "Dialling 112 in Nigeria is a coin-toss.             │
-│            We turned the coin into an answer."                 │
-│                                                                │
-│  PROBLEM: 112 broken. Apps need data. Responders invisible.    │
-│                                                                │
-│  SOLUTION: One dial → AI triage → nearest verified volunteer   │
-│            → live coordinator dashboard.                       │
-│                                                                │
-│  4 LAYERS: USSD · Voice AI · Automation · GovDashboard         │
-│                                                                │
-│  DEMO:    Dial *384*1# → pick 1 → pin lights up dashboard      │
-│           → responder phone buzzes → tap ACCEPT → map moves.   │
-│           Under 15 seconds end-to-end.                         │
-│                                                                │
-│  GOVTECH: Universal access · audit trail · LGA-scalable        │
-│           · cheap · uses existing volunteers.                  │
-│                                                                │
-│  ASK:     Aggregator licence + 90-day Port Harcourt pilot      │
-│           + publish the numbers vs 112.                        │
-│                                                                │
-│  CLOSER:  "Every second counts. Any phone. Any network."       │
-└────────────────────────────────────────────────────────────────┘
-```
+Read this list before stepping on stage:
+
+- *public infrastructure* (slides 3, 8)
+- *government coordinator* (slides 1, 3, 7)
+- *LGA* / *774 LGAs* (slides 7, 8)
+- *immutable audit trail* (slides 7, 8)
+- *publish the numbers vs 112* (slide 11)
+- *the cheapest phone in the country* (slide 8)
+- *NYSC* / *FRSC* / *SEMA* (slides 2, 9, 10)
+
+If any of these don't make it out of your mouth, the audience will walk away thinking ResQ is a startup. Hit each one at least once.
 
 ---
 
-## 13. Tone tips for delivery
+## Tone & delivery
 
-- **Don't say "we built an AI emergency response platform."** Say *"we built the thing that should have been 112."* The judges hear the first phrase 20 times a day.
-- **Hold the feature phone the entire pitch.** It is your single best prop. Every time you say "any phone", point at it.
-- **Use one Nigerian-specific noun per minute.** *Mushin. Aba Road. NYSC. Buka. Lekki Phase 1.* It signals that you built this for *here*, not for a Silicon Valley accelerator.
-- **Slow down on the audit trail line.** That's the line that wins the govtech category. Pause. Let it land.
-- **End on the cold open.** *"Every second counts. Any phone. Any network."* Don't add anything after it. Walk away from the mic.
+- **Don't say "we built an AI emergency response platform."** Say *"we built the thing that should have been 112."*
+- **Hold the feature phone the entire pitch.** It is your single best prop.
+- **Use one Nigerian-specific noun per minute.** *Mushin. Aba Road. NYSC. Lekki Phase 1.* It signals you built this for **here**, not for Silicon Valley.
+- **Slow down on the audit trail line** (slide 7). Pause. Let it land.
+- **End on the cold open.** *"Every second counts. Any phone. Any network."* Walk away.
 
 ---
 

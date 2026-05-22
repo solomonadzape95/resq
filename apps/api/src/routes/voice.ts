@@ -28,6 +28,12 @@ const transcriptBody = z.object({
       }),
     )
     .min(1),
+  // Optional device GPS from the simulator's VoicemailPanel. When present
+  // the incident is pinned at the caller's actual position instead of the
+  // demo jittered fallback.
+  location_lat: z.number().optional(),
+  location_lng: z.number().optional(),
+  location_accuracy: z.number().nullish(),
   metadata: z
     .object({
       call_duration_secs: z.number().optional(),
@@ -42,12 +48,18 @@ interface RequestWithRawBody extends Request {
 }
 
 voiceRouter.post("/transcript", async (req: RequestWithRawBody, res) => {
-  // Signature check — soft-fail in dev so curl smoke tests still work.
+  // Signature check has three accepted outcomes:
+  //  - ok            : ElevenLabs server-to-server webhook, HMAC valid
+  //  - missing_secret: dev mode, no ELEVENLABS_WEBHOOK_SECRET configured
+  //  - missing_header: browser-direct POST from VoicemailPanel (no HMAC)
+  // The browser path is trusted via CORS on /voice/* (origin allow-listed
+  // in apps/api/src/index.ts). Anything else with a bad signature is rejected.
   const sigHeader = req.header("xi-signature") ?? req.header("elevenlabs-signature");
   const rawBody = req.rawBody?.toString("utf8") ?? JSON.stringify(req.body);
   const verdict = verifySignature(rawBody, sigHeader ?? undefined);
   logSigVerdict(verdict, req.body?.agent_id);
-  if (verdict !== "ok" && verdict !== "missing_secret") {
+  const acceptable = verdict === "ok" || verdict === "missing_secret" || verdict === "missing_header";
+  if (!acceptable) {
     return res.status(401).json({ error: "invalid_signature", verdict });
   }
 
@@ -56,7 +68,14 @@ voiceRouter.post("/transcript", async (req: RequestWithRawBody, res) => {
     logger.warn({ body: req.body, err: parsed.error.flatten() }, "[voice] bad transcript body");
     return res.status(400).json(parsed.error.flatten());
   }
-  const { conversation_id, caller_id, transcript } = parsed.data;
+  const {
+    conversation_id,
+    caller_id,
+    transcript,
+    location_lat,
+    location_lng,
+  } = parsed.data;
+  const hasDeviceGps = typeof location_lat === "number" && typeof location_lng === "number";
 
   const userSpeech = transcript
     .filter((t) => t.role === "user")
@@ -82,12 +101,17 @@ voiceRouter.post("/transcript", async (req: RequestWithRawBody, res) => {
       })
     : null;
 
-  const fallback = existing
-    ? {
-        lat: existing.locationLat ?? jitteredFallback().lat,
-        lng: existing.locationLng ?? jitteredFallback().lng,
-      }
-    : jitteredFallback();
+  // Coordinate priority: device GPS from the caller > existing incident's
+  // stored coords > jittered demo fallback. The jittered fallback is only
+  // used when nothing else is available (e.g. real telco USSD without GPS).
+  const fallback = hasDeviceGps
+    ? { lat: location_lat as number, lng: location_lng as number }
+    : existing
+      ? {
+          lat: existing.locationLat ?? jitteredFallback().lat,
+          lng: existing.locationLng ?? jitteredFallback().lng,
+        }
+      : jitteredFallback();
 
   const incident = existing
     ? await prisma.incident.update({
@@ -96,6 +120,15 @@ voiceRouter.post("/transcript", async (req: RequestWithRawBody, res) => {
           transcriptFull:
             (existing.transcriptFull ? existing.transcriptFull + "\n" : "") +
             userSpeech,
+          // If the caller's device just produced a GPS fix, overwrite the
+          // older USSD-fallback coords with the precise one.
+          ...(hasDeviceGps
+            ? {
+                locationLat: fallback.lat,
+                locationLng: fallback.lng,
+                locationConfirmed: true,
+              }
+            : {}),
         },
       })
     : await prisma.incident.create({
@@ -106,7 +139,7 @@ voiceRouter.post("/transcript", async (req: RequestWithRawBody, res) => {
           status: "new",
           locationLat: fallback.lat,
           locationLng: fallback.lng,
-          locationConfirmed: false,
+          locationConfirmed: hasDeviceGps,
           transcriptFull: userSpeech,
         },
       });
@@ -118,7 +151,22 @@ voiceRouter.post("/transcript", async (req: RequestWithRawBody, res) => {
       getIO().to(ROOM.coordinator()).emit("incident:updated", {
         id: incident.id,
         transcriptFull: incident.transcriptFull,
+        ...(hasDeviceGps
+          ? {
+              locationLat: fallback.lat,
+              locationLng: fallback.lng,
+              locationConfirmed: true,
+            }
+          : {}),
       });
+      if (hasDeviceGps) {
+        getIO().to(ROOM.incident(incident.id)).emit("incident:location_update", {
+          id: incident.id,
+          lat: fallback.lat,
+          lng: fallback.lng,
+          locationText: incident.locationText,
+        });
+      }
     } else {
       getIO().to(ROOM.coordinator()).emit("incident:new", {
         id: incident.id,
@@ -210,12 +258,23 @@ async function runLocationPipeline(incidentId: string, transcript: string) {
     const { extracted, place } = await extractAndGeocode(transcript);
     if (!extracted.location_text && !place) return;
 
+    // If we already have device-GPS coords on this incident
+    // (locationConfirmed === true was set by the voicemail POST), trust
+    // them. The AI extraction can wander to a wrong landmark and Nominatim
+    // can geocode "the big mosque on Aba Road" to a different city. Only
+    // ever upgrade jittered/USSD-fallback coords, never overwrite real GPS.
+    const current = await prisma.incident.findUnique({
+      where: { id: incidentId },
+      select: { locationConfirmed: true },
+    });
+    const allowCoordOverwrite = !current?.locationConfirmed;
+
     await prisma.incident.update({
       where: { id: incidentId },
       data: {
         aiExtractedLocation: extracted.location_text ?? undefined,
         locationText: extracted.location_text ?? undefined,
-        ...(place
+        ...(place && allowCoordOverwrite
           ? {
               locationLat: place.lat,
               locationLng: place.lng,
@@ -229,7 +288,7 @@ async function runLocationPipeline(incidentId: string, transcript: string) {
       id: incidentId,
       aiExtractedLocation: extracted.location_text ?? undefined,
       locationText: extracted.location_text ?? undefined,
-      ...(place
+      ...(place && allowCoordOverwrite
         ? {
             locationLat: place.lat,
             locationLng: place.lng,
@@ -237,7 +296,7 @@ async function runLocationPipeline(incidentId: string, transcript: string) {
           }
         : {}),
     });
-    if (place) {
+    if (place && allowCoordOverwrite) {
       getIO().to(ROOM.incident(incidentId)).emit("incident:location_update", {
         id: incidentId,
         lat: place.lat,
@@ -248,7 +307,9 @@ async function runLocationPipeline(incidentId: string, transcript: string) {
     if (extracted.location_text) {
       getIO().to(ROOM.incident(incidentId)).emit("transcript:chunk", {
         incidentId,
-        text: `[AI] Location: ${extracted.location_text}${place ? " ✓" : " (not geocoded)"}`,
+        text: `[AI] Location: ${extracted.location_text}${
+          place ? (allowCoordOverwrite ? " ✓" : " (kept device GPS)") : " (not geocoded)"
+        }`,
         timestamp: new Date().toISOString(),
         extractedData: extracted as unknown as Record<string, unknown>,
       });

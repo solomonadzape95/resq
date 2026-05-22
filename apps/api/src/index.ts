@@ -14,9 +14,23 @@ import { voiceRouter } from "./routes/voice.js";
 
 const app = express();
 
+// CORS:
+//   - WEB_ORIGIN entries (production / explicit) are always allowed
+//   - In dev (NODE_ENV !== 'production') any localhost/private-LAN origin
+//     is also allowed, so a phone on the same wifi can hit this API.
+//   - Same-origin / curl requests (no Origin header) always pass.
+const explicitOrigins = env.WEB_ORIGIN.split(",").map((s) => s.trim());
+const lanOriginRegex = /^https?:\/\/(localhost(:\d+)?|127\.0\.0\.1(:\d+)?|192\.168\.\d+\.\d+(:\d+)?|10\.\d+\.\d+\.\d+(:\d+)?|172\.(1[6-9]|2[0-9]|3[01])\.\d+\.\d+(:\d+)?)$/;
 app.use(
   cors({
-    origin: env.WEB_ORIGIN.split(",").map((s) => s.trim()),
+    origin: (origin, cb) => {
+      if (!origin) return cb(null, true);
+      if (explicitOrigins.includes(origin)) return cb(null, true);
+      if (env.NODE_ENV !== "production" && lanOriginRegex.test(origin)) {
+        return cb(null, true);
+      }
+      cb(new Error(`CORS: origin ${origin} not allowed`));
+    },
     credentials: true,
   }),
 );

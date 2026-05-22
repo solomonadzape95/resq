@@ -2,13 +2,14 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Incident, ResponderStatus } from "@resq/shared/types";
 import { api } from "@/lib/api";
 import { getSocket } from "@/lib/socket";
 import { IncidentList } from "@/components/incident/IncidentList";
 import { IncidentPanel } from "@/components/incident/IncidentPanel";
 import type { ResponderPin } from "@/components/map/IncidentMap";
+import { CITIES, findCity, isInCity, type CityBounds } from "@/lib/incidents";
 
 const IncidentMap = dynamic(
   () => import("@/components/map/IncidentMap").then((m) => m.IncidentMap),
@@ -35,33 +36,71 @@ interface RawResponder {
 
 const ACTIVE_LINK_STATUSES = new Set(["assigned", "accepted", "en_route", "on_scene"]);
 
+const CITY_STORAGE_KEY = "resq.coordinator.cityId";
+
 export default function DashboardPage() {
   const [incidents, setIncidents] = useState<IncidentWithRels[]>([]);
   const [responders, setResponders] = useState<RawResponder[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showResponders, setShowResponders] = useState(true);
   const [connected, setConnected] = useState(false);
+  // null = coordinator hasn't picked a city yet (gate shows).
+  // string = city.id selected. Persisted to localStorage so reloads keep it.
+  const [cityId, setCityId] = useState<string | null>(null);
+  const [cityLoaded, setCityLoaded] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const saved = window.localStorage.getItem(CITY_STORAGE_KEY);
+    if (saved) setCityId(saved);
+    setCityLoaded(true);
+  }, []);
+
+  const city: CityBounds | null = cityId ? findCity(cityId) : null;
+
+  const pickCity = useCallback((id: string) => {
+    setCityId(id);
+    setSelectedId(null);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(CITY_STORAGE_KEY, id);
+    }
+  }, []);
+
+  // Single function so we can refetch on mount, on socket reconnect, and on
+  // a periodic backstop. Merge semantics: rows from /alerts are authoritative
+  // for ids they cover, but any incident already in local state that the
+  // server didn't return (e.g. a fresh socket-pushed row mid-fetch) survives.
+  const refetchIncidents = useCallback(async () => {
+    try {
+      const rows = await api<IncidentWithRels[]>("/alerts?active=true&limit=200");
+      const normalised = rows.map((r) => ({
+        ...r,
+        createdAt:
+          typeof r.createdAt === "string"
+            ? r.createdAt
+            : new Date(r.createdAt as unknown as string).toISOString(),
+        resolvedAt: r.resolvedAt
+          ? typeof r.resolvedAt === "string"
+            ? r.resolvedAt
+            : new Date(r.resolvedAt as unknown as string).toISOString()
+          : null,
+      })) as IncidentWithRels[];
+      setIncidents((prev) => {
+        const fetchedIds = new Set(normalised.map((r) => r.id));
+        // Preserve incidents pushed via socket that the server didn't return
+        // yet (race when fetch is in flight while a new incident is created).
+        const survivors = prev.filter((p) => !fetchedIds.has(p.id));
+        // Stable order: socket-only first (most recent), then server rows.
+        return [...survivors, ...normalised];
+      });
+    } catch (e) {
+      console.error("[dashboard] /alerts failed", e);
+    }
+  }, []);
 
   useEffect(() => {
     let mounted = true;
-    api<IncidentWithRels[]>("/alerts?active=true&limit=200")
-      .then((rows) => {
-        if (!mounted) return;
-        const normalised = rows.map((r) => ({
-          ...r,
-          createdAt:
-            typeof r.createdAt === "string"
-              ? r.createdAt
-              : new Date(r.createdAt as unknown as string).toISOString(),
-          resolvedAt: r.resolvedAt
-            ? typeof r.resolvedAt === "string"
-              ? r.resolvedAt
-              : new Date(r.resolvedAt as unknown as string).toISOString()
-            : null,
-        })) as IncidentWithRels[];
-        setIncidents(normalised);
-      })
-      .catch((e) => console.error("[dashboard] /alerts failed", e));
+    void refetchIncidents();
 
     api<RawResponder[]>("/responders")
       .then((rows) => {
@@ -70,15 +109,30 @@ export default function DashboardPage() {
       })
       .catch((e) => console.error("[dashboard] /responders failed", e));
 
+    // Periodic backstop: catch anything dropped by a flaky socket. Every
+    // 10s, re-merge against the server. Cheap (200 rows max) and means the
+    // sidebar never lies for more than that interval.
+    const interval = window.setInterval(() => {
+      if (mounted) void refetchIncidents();
+    }, 10000);
+
     return () => {
       mounted = false;
+      window.clearInterval(interval);
     };
-  }, []);
+  }, [refetchIncidents]);
 
   useEffect(() => {
     const sock = getSocket();
     if (!sock) return;
-    sock.on("connect", () => setConnected(true));
+    const onConnect = () => {
+      setConnected(true);
+      sock.emit("join:coordinator");
+      // After a reconnect, the server may have created or updated incidents
+      // we missed. Re-fetch to backfill before going back to live updates.
+      void refetchIncidents();
+    };
+    sock.on("connect", onConnect);
     sock.on("disconnect", () => setConnected(false));
     sock.emit("join:coordinator");
     setConnected(sock.connected);
@@ -127,20 +181,34 @@ export default function DashboardPage() {
     });
 
     return () => {
+      sock.off("connect", onConnect);
       sock.off("incident:new");
       sock.off("incident:updated");
       sock.off("responder:status");
       sock.off("responder:accepted");
     };
-  }, []);
+  }, [refetchIncidents]);
 
-  const selected = selectedId ? incidents.find((i) => i.id === selectedId) : null;
+  // City filter: incidents and responders outside the selected city's
+  // bounding box are dropped before anything else sees them, so the list,
+  // map, tally, and match lines all see one consistent set of rows.
+  const cityIncidents = useMemo(
+    () => incidents.filter((i) => isInCity(i.locationLat, i.locationLng, city)),
+    [incidents, city],
+  );
+  const cityResponders = useMemo(
+    () => responders.filter((r) => isInCity(r.currentLat, r.currentLng, city)),
+    [responders, city],
+  );
+
+  const selected = selectedId ? cityIncidents.find((i) => i.id === selectedId) : null;
 
   // For each responder, compute the set of active incidents they're linked
   // to. Drives the assignment-line overlay.
   const responderPins: ResponderPin[] = useMemo(() => {
+    const cityIncidentIds = new Set(cityIncidents.map((i) => i.id));
     const linksByResponder = new Map<string, string[]>();
-    for (const inc of incidents) {
+    for (const inc of cityIncidents) {
       for (const link of inc.responders ?? []) {
         if (!ACTIVE_LINK_STATUSES.has(link.status)) continue;
         const arr = linksByResponder.get(link.responderId) ?? [];
@@ -148,7 +216,7 @@ export default function DashboardPage() {
         linksByResponder.set(link.responderId, arr);
       }
     }
-    return responders.map((r) => ({
+    return cityResponders.map((r) => ({
       id: r.id,
       name: r.user.name ?? r.user.phone,
       phone: r.user.phone,
@@ -156,30 +224,62 @@ export default function DashboardPage() {
       skills: r.skills,
       currentLat: r.currentLat,
       currentLng: r.currentLng,
-      incidentIds: linksByResponder.get(r.id) ?? [],
+      // Filter linkages to incidents we actually show in this city.
+      incidentIds: (linksByResponder.get(r.id) ?? []).filter((id) => cityIncidentIds.has(id)),
     }));
-  }, [incidents, responders]);
+  }, [cityIncidents, cityResponders]);
 
   const tally = useMemo(() => {
-    const open = incidents.filter(
+    const open = cityIncidents.filter(
       (i) => i.status !== "resolved" && i.status !== "cancelled" && i.status !== "false_alarm",
     );
-    const availableResponders = responders.filter((r) => r.status === "available").length;
+    const availableResponders = cityResponders.filter((r) => r.status === "available").length;
     return {
       open: open.length,
       critical: open.filter((i) => i.aiSeverity === "critical").length,
       high: open.filter((i) => i.aiSeverity === "high").length,
       availableResponders,
     };
-  }, [incidents, responders]);
+  }, [cityIncidents, cityResponders]);
+
+  // City gate: until the coordinator picks an LGA, show a chooser screen.
+  if (cityLoaded && !city) {
+    return <CityPicker onPick={pickCity} />;
+  }
+  if (!cityLoaded) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-resq-dark text-neutral-500">
+        Loading…
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen flex-col bg-resq-dark">
       <header className="flex h-14 items-center justify-between border-b-2 border-neutral-900 bg-black/40 px-4">
-        <Link href="/" className="btn-press flex items-center gap-2 text-neutral-100 hover:text-white">
-          <span className="text-xl">🚨</span>
-          <span className="font-semibold tracking-tight">ResQ Coordinator</span>
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link href="/" className="btn-press flex items-center gap-2 text-neutral-100 hover:text-white">
+            <span className="text-xl">🚨</span>
+            <span className="font-semibold tracking-tight">ResQ Coordinator</span>
+          </Link>
+          {city ? (
+            <button
+              type="button"
+              onClick={() => {
+                if (typeof window !== "undefined") {
+                  window.localStorage.removeItem(CITY_STORAGE_KEY);
+                }
+                setCityId(null);
+              }}
+              className="btn-press flex items-center gap-2 border-2 border-neutral-800 px-3 py-1 text-xs uppercase tracking-widest text-neutral-300 hover:border-resq-red hover:text-white"
+              title="Change coordinating city"
+            >
+              <span className="h-2 w-2 rounded-full bg-resq-red" />
+              {city.label}
+              <span className="text-neutral-500">change</span>
+            </button>
+          ) : null}
+        </div>
         <div className="flex items-center gap-3 text-sm">
           <span
             className={`flex items-center gap-2 border-2 px-2 py-0.5 ${
@@ -221,7 +321,7 @@ export default function DashboardPage() {
             Incidents
           </div>
           <IncidentList
-            incidents={incidents}
+            incidents={cityIncidents}
             selectedId={selectedId}
             onSelect={(id) => setSelectedId(id || null)}
           />
@@ -229,11 +329,16 @@ export default function DashboardPage() {
 
         <section className="relative flex-1">
           <IncidentMap
-            incidents={incidents}
+            incidents={cityIncidents}
             responders={responderPins}
             showResponders={showResponders}
             selectedId={selectedId}
             onSelect={(id) => setSelectedId(id || null)}
+            centre={
+              city
+                ? { lat: city.centre[0], lng: city.centre[1], zoom: city.zoom }
+                : undefined
+            }
           />
           {/* Floating layer-filter card. Sits over the map, top-left. */}
           <div className="animate-fade-up absolute left-3 top-3 z-10 border-2 border-neutral-800 bg-neutral-950/90 p-2 text-xs shadow-xl backdrop-blur">
@@ -279,6 +384,58 @@ export default function DashboardPage() {
         ) : null}
       </main>
     </div>
+  );
+}
+
+// Gate shown the first time a coordinator opens /dashboard, or after they
+// hit "change" in the header. Selection is persisted to localStorage so a
+// PH coordinator and a Lagos coordinator each keep their own view.
+function CityPicker({ onPick }: { onPick: (id: string) => void }) {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-resq-dark px-6 py-16">
+      <div className="w-full max-w-3xl">
+        <div className="flex items-center gap-3">
+          <span className="text-3xl">🚨</span>
+          <span className="text-xl font-semibold tracking-tight text-white">ResQ Coordinator</span>
+        </div>
+        <p className="mt-8 text-xs uppercase tracking-widest text-resq-red">Coordinator console</p>
+        <h1 className="mt-3 text-3xl font-bold leading-tight text-white md:text-4xl">
+          Choose the city you&apos;re coordinating.
+        </h1>
+        <p className="mt-3 max-w-2xl text-neutral-400">
+          Every incident, every responder, every match line in this console is
+          scoped to one LGA. Pick yours so callers from elsewhere are routed to
+          the right desk, not yours.
+        </p>
+
+        <div className="mt-10 grid gap-3 md:grid-cols-3">
+          {CITIES.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => onPick(c.id)}
+              className="btn-press group border-l-4 border-2 border-neutral-900 border-l-resq-red bg-neutral-950 p-5 text-left transition hover:border-neutral-700 hover:border-l-resq-red"
+            >
+              <div className="text-[10px] uppercase tracking-widest text-resq-red">
+                {c.id.replace("-", " ")}
+              </div>
+              <div className="mt-2 text-lg font-semibold text-white">{c.label}</div>
+              <div className="mt-2 font-mono text-[11px] text-neutral-500">
+                {c.lat[0].toFixed(2)}–{c.lat[1].toFixed(2)}°N · {c.lng[0].toFixed(2)}–
+                {c.lng[1].toFixed(2)}°E
+              </div>
+              <div className="mt-3 inline-flex items-center gap-1 text-xs text-neutral-400 group-hover:text-white">
+                Coordinate this city →
+              </div>
+            </button>
+          ))}
+        </div>
+
+        <p className="mt-8 text-xs text-neutral-500">
+          You can change this at any time from the header.
+        </p>
+      </div>
+    </main>
   );
 }
 

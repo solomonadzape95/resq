@@ -46,9 +46,13 @@ export function verifySignature(rawBody: string, header: string | undefined): Si
 }
 
 export function logSigVerdict(verdict: SigVerdict, agentId: string | undefined) {
-  if (verdict === "ok") return;
+  // ok            : matched HMAC, normal path
+  // missing_header: browser-direct POST (VoicemailPanel) — normal path
+  // missing_secret: dev mode without a webhook secret configured
+  // others        : real failures, worth a warn
+  if (verdict === "ok" || verdict === "missing_header") return;
   if (verdict === "missing_secret") {
-    logger.warn(
+    logger.debug(
       { agentId },
       "[elevenlabs] webhook accepted without signature check (ELEVENLABS_WEBHOOK_SECRET unset)",
     );

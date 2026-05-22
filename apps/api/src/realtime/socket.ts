@@ -10,10 +10,22 @@ import { logger } from "../lib/logger.js";
 
 let io: SocketIOServer<ClientToServerEvents, ServerToClientEvents> | null = null;
 
+const explicitOrigins = env.WEB_ORIGIN.split(",").map((s) => s.trim());
+const lanOriginRegex = /^https?:\/\/(localhost(:\d+)?|127\.0\.0\.1(:\d+)?|192\.168\.\d+\.\d+(:\d+)?|10\.\d+\.\d+\.\d+(:\d+)?|172\.(1[6-9]|2[0-9]|3[01])\.\d+\.\d+(:\d+)?)$/;
+
 export function initSocket(httpServer: HttpServer) {
   io = new SocketIOServer<ClientToServerEvents, ServerToClientEvents>(httpServer, {
     cors: {
-      origin: env.WEB_ORIGIN.split(",").map((s) => s.trim()),
+      // Same allow-list shape as the REST CORS: explicit origins always,
+      // localhost + private-LAN in dev so cross-device demos work.
+      origin: (origin, cb) => {
+        if (!origin) return cb(null, true);
+        if (explicitOrigins.includes(origin)) return cb(null, true);
+        if (env.NODE_ENV !== "production" && lanOriginRegex.test(origin)) {
+          return cb(null, true);
+        }
+        cb(new Error(`CORS: socket origin ${origin} not allowed`));
+      },
       credentials: true,
     },
   });

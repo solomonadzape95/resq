@@ -195,4 +195,12 @@ See `ResQ_Technical_Specification.docx` and `/Users/solenoid/.claude/plans/go-to
 - Coordinator: phone `+2348000000001`, password `resq-demo-2026`
 - Seeded responders: `+2348000000002` … `+2348000000006` (no password — placeholders)
 
+---
+
+## Pitch deck
+
+- Projector slides live in `PITCH.html` (open in any browser; ← / → / space / click to navigate; append `?notes` to show speaker notes on screen).
+- Speaker notes for both presenters live in `PITCH.md` — slide-by-slide outline with keywords + Q&A appendix.
+- To refresh `smart-challenge-pitch.pdf`: open `PITCH.html` → Cmd-P → **Save as PDF**. One slide per page, speaker notes printed inline.
+
 ResQ — because every second counts.

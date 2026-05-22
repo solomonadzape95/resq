@@ -15,7 +15,9 @@ const schema = z.object({
   AFRICAS_TALKING_USSD_CODE: z.string().default("*384#"),
   AFRICAS_TALKING_SENDER_ID: z.string().default("ResQ"),
   OPENROUTER_API_KEY: z.string().optional(),
-  OPENROUTER_DEFAULT_MODEL: z.string().default("anthropic/claude-3.5-sonnet"),
+  // gpt-4o-mini is cheap, fast, and always-available on OpenRouter.
+  // Override with anthropic/claude-sonnet-4 or similar if you prefer.
+  OPENROUTER_DEFAULT_MODEL: z.string().default("openai/gpt-4o-mini"),
   OPENROUTER_WHISPER_MODEL: z.string().default("openai/whisper-large-v3"),
   GOOGLE_MAPS_API_KEY: z.string().optional(),
   WEB_ORIGIN: z.string().default("http://localhost:3000"),

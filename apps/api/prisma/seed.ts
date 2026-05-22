@@ -26,8 +26,12 @@ async function main() {
     update: {},
   });
 
-  // Sample responders (Port Harcourt area)
+  // Responder network across three Nigerian cities:
+  //   - Port Harcourt, Rivers (original cohort)
+  //   - Nsukka, Enugu (UNN campus + town)
+  //   - Yaba Phase 1, Lagos (around 10/1 Studios, Tinubu Street)
   const responders = [
+    // -------- Port Harcourt --------
     {
       phone: "+2348000000002",
       name: "Dr. Amara Okeke",
@@ -66,6 +70,72 @@ async function main() {
       skills: ["fire_warden", "civil_defence"],
       lat: 4.8329,
       lng: 7.0356,
+      status: "available" as const,
+    },
+    {
+      phone: "+2348000000007",
+      name: "Nurse Bisi Adeleke",
+      skills: ["nurse", "first_aider"],
+      lat: 4.8056,
+      lng: 7.0344,
+      status: "available" as const,
+    },
+    // -------- Nsukka (UNN) --------
+    {
+      phone: "+2348070000001",
+      name: "Dr. Ifeoma Nwokocha",
+      skills: ["doctor", "first_aider"],
+      lat: 6.8585,
+      lng: 7.3961,
+      status: "available" as const,
+    },
+    {
+      phone: "+2348070000002",
+      name: "Paramedic Emeka Okoye",
+      skills: ["paramedic", "first_aider"],
+      lat: 6.8623,
+      lng: 7.3974,
+      status: "available" as const,
+    },
+    {
+      phone: "+2348070000003",
+      name: "Officer Uche Mba",
+      skills: ["security", "police_liaison"],
+      lat: 6.8541,
+      lng: 7.3902,
+      status: "available" as const,
+    },
+    // -------- Yaba Phase 1, Lagos (10/1 Studios) --------
+    {
+      phone: "+2348070000004",
+      name: "Paramedic Adesua Bello",
+      skills: ["paramedic", "first_aider"],
+      lat: 6.5095,
+      lng: 3.3756,
+      status: "available" as const,
+    },
+    {
+      phone: "+2348070000005",
+      name: "Officer Bamidele John",
+      skills: ["security", "police_liaison"],
+      lat: 6.5125,
+      lng: 3.3795,
+      status: "available" as const,
+    },
+    {
+      phone: "+2348070000006",
+      name: "Fire Warden Olu Babatunde",
+      skills: ["fire_warden", "civil_defence"],
+      lat: 6.5048,
+      lng: 3.3712,
+      status: "available" as const,
+    },
+    {
+      phone: "+2348070000007",
+      name: "Dr. Folake Adeyemi",
+      skills: ["doctor", "first_aider"],
+      lat: 6.5072,
+      lng: 3.3768,
       status: "available" as const,
     },
   ];
@@ -285,7 +355,8 @@ async function main() {
     });
   }
 
-  console.log("✅ Reseeded coordinator + 5 responders + 12 demo incidents.");
+  console.log(`✅ Reseeded coordinator + ${responders.length} responders + ${demoIncidents.length} demo incidents.`);
+  console.log("   Coverage: Port Harcourt, Nsukka (UNN), Yaba Phase 1 Lagos.");
   console.log("   Coordinator login → phone +2348000000001 / password resq-demo-2026");
 }
 

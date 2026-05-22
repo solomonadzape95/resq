@@ -64,14 +64,22 @@ export async function findCandidateResponders(args: {
     };
   });
 
-  return ranked
-    .filter((r) => r.withinRadius)
-    .sort((a, b) => {
-      if (a.distanceKm == null && b.distanceKm == null) return 0;
-      if (a.distanceKm == null) return 1;
-      if (b.distanceKm == null) return -1;
-      return a.distanceKm - b.distanceKm;
-    })
-    .slice(0, args.limit ?? 10)
+  const limit = args.limit ?? 10;
+  const sorted = ranked.sort((a, b) => {
+    if (a.distanceKm == null && b.distanceKm == null) return 0;
+    if (a.distanceKm == null) return 1;
+    if (b.distanceKm == null) return -1;
+    return a.distanceKm - b.distanceKm;
+  });
+
+  // Primary pass: responders whose declared service radius covers this
+  // incident. Fallback: when nobody covers the incident (e.g. an out-of-LGA
+  // demo call from a real phone), surface the closest verified responders
+  // anyway so the dashboard isn't empty. The coordinator can still override.
+  const inRadius = sorted.filter((r) => r.withinRadius);
+  const final = inRadius.length > 0 ? inRadius : sorted;
+
+  return final
+    .slice(0, limit)
     .map(({ withinRadius: _w, ...rest }) => rest);
 }
