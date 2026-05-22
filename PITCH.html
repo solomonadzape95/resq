@@ -692,9 +692,15 @@
     .slide__watermark { font-size: 460px !important; }
     h1.hero { font-size: 150px !important; }
     h2 {
-      font-size: 54px !important;
-      line-height: 1.03 !important;
-      letter-spacing: -0.025em !important;
+      font-size: 44px !important;
+      line-height: 1.05 !important;
+      letter-spacing: -0.022em !important;
+      max-width: 26ch !important;
+    }
+    /* Single-line headline on slide 7 (~30 chars at 44px ≈ 700px,
+       fits well within the 1120px print content area). */
+    .slide[data-slide="7"] h2 {
+      max-width: 100% !important;
     }
     .eyebrow {
       margin-bottom: 14px !important;
