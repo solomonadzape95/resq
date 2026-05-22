@@ -136,6 +136,16 @@ export const CITIES: CityBounds[] = [
     centre: [6.86, 7.40],
     zoom: 12,
   },
+  {
+    id: "enugu",
+    label: "Enugu (Airport / GRA)",
+    // Covers Akanu Ibiam International Airport, Independence Layout,
+    // Trans Ekulu, and Enugu city centre.
+    lat: [6.35, 6.55],
+    lng: [7.35, 7.65],
+    centre: [6.4744, 7.5619],
+    zoom: 12,
+  },
 ];
 
 export const ALL_CITIES_ID = "all";

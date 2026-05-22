@@ -105,6 +105,34 @@ async function main() {
       lng: 7.3902,
       status: "available" as const,
     },
+    // -------- Enugu (Airport / GRA) --------
+    {
+      phone: "+2348080000001",
+      name: "Paramedic Chima Eze",
+      skills: ["paramedic", "first_aider"],
+      // Akanu Ibiam International Airport perimeter
+      lat: 6.4760,
+      lng: 7.5605,
+      status: "available" as const,
+    },
+    {
+      phone: "+2348080000002",
+      name: "Officer Ifeoma Onyeka",
+      skills: ["security", "police_liaison"],
+      // Independence Layout
+      lat: 6.4485,
+      lng: 7.5020,
+      status: "available" as const,
+    },
+    {
+      phone: "+2348080000003",
+      name: "Fire Warden Obi Nnamdi",
+      skills: ["fire_warden", "civil_defence"],
+      // Trans Ekulu
+      lat: 6.4625,
+      lng: 7.5275,
+      status: "available" as const,
+    },
     // -------- Yaba Phase 1, Lagos (10/1 Studios) --------
     {
       phone: "+2348070000004",
@@ -356,7 +384,7 @@ async function main() {
   }
 
   console.log(`✅ Reseeded coordinator + ${responders.length} responders + ${demoIncidents.length} demo incidents.`);
-  console.log("   Coverage: Port Harcourt, Nsukka (UNN), Yaba Phase 1 Lagos.");
+  console.log("   Coverage: Port Harcourt, Nsukka (UNN), Enugu (Airport/GRA), Yaba Phase 1 Lagos.");
   console.log("   Coordinator login → phone +2348000000001 / password resq-demo-2026");
 }
 

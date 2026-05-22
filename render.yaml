@@ -33,10 +33,12 @@ services:
     plan: free            # bump to `starter` for always-on (no cold starts)
     region: oregon        # pick one region and use it for db/redis/api/web
     rootDir: .
+    # Prisma client is generated twice for belt-and-suspenders: once by
+    # @resq/api's postinstall, and again at the start of `pnpm build`.
+    # Either alone has historically been flaky under pnpm + turbo on CI.
     buildCommand: |
       corepack enable &&
       pnpm install --frozen-lockfile &&
-      pnpm --filter @resq/api exec prisma generate &&
       pnpm --filter @resq/api build
     preDeployCommand: pnpm --filter @resq/api exec prisma migrate deploy
     startCommand: pnpm --filter @resq/api start

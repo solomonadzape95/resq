@@ -9,7 +9,7 @@ PRESENTATION OUTLINE
   #   Slide                       Speaker   Time    Purpose
   --  --------------------------  --------  ------  ---------------------------
   1   Title & Hook                A         0:25    Plant the tagline.
-  2   The Problem                 A         0:40    Why 112 fails most Nigerians.
+  2   The Problem                 A         0:40    112 has the mandate, not the rails.
   3   What ResQ Is                A         0:40    One-line solution + 3-actor
                                                     triangle.
   4   How a Call Happens          A         0:50    USSD callback vs voicemail
@@ -175,7 +175,9 @@ GOVTECH ANCHOR PHRASES (read before stage time)
       • government coordinator                 (slides 1, 3, 7)
       • LGA / 774 LGAs                         (slides 7, 8)
       • immutable audit trail                  (slides 7, 8)
-      • publish the numbers vs 112             (slide 11)
+      • publish the response-time lift, same 112 number (slide 12)
+      • plugs into 112, doesn't replace it     (slides 1, 3, 8)
+      • dispatch interface 112 can run on      (slides 1, 3)
       • the cheapest phone in the country      (slide 8)
       • NYSC / FRSC / SEMA                     (slides 2, 9, 10)
 

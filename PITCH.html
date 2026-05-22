@@ -58,6 +58,22 @@
   }
   .slide--active { display: flex; }
 
+  /* Full-bleed image slides used as the deck's intro and outro. The image
+     fills the viewport edge-to-edge; the header chrome and body content
+     are suppressed so nothing competes with the artwork. */
+  .slide--image {
+    padding: 0 !important;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: #000;
+  }
+  .slide--image .head,
+  .slide--image .body,
+  .slide--image .slide__watermark {
+    display: none !important;
+  }
+
   /* Giant slide-number watermark sitting behind the content. Sets the
      visual rhythm across the deck without competing with what's on top. */
   .slide__watermark {
@@ -669,7 +685,7 @@
   @media print {
     html, body {
       overflow: visible !important;
-      background: var(--bg) !important;
+      background-color: var(--bg) !important;
       width: 1280px;
     }
     .deck { width: 1280px; height: auto; }
@@ -682,7 +698,17 @@
       padding: 36px 80px 30px !important;
       page-break-after: always !important;
       break-after: page !important;
-      background: var(--bg) !important;
+      /* background-color only (not the shorthand) so the intro/outro
+         slides' inline background-image is preserved through to the PDF.
+         The shorthand `background:` resets background-image to none. */
+      background-color: var(--bg) !important;
+    }
+    .slide.slide--image {
+      /* Intro/outro images: zero padding, image fills the full page. */
+      padding: 0 !important;
+      background-size: cover !important;
+      background-position: center !important;
+      background-repeat: no-repeat !important;
     }
     .slide:last-child { page-break-after: auto !important; break-after: auto !important; }
     .nav, .nav__hint { display: none !important; }
@@ -986,8 +1012,16 @@
 
 <div class="deck" id="deck">
 
-  <!-- ===== SLIDE 1 - TITLE ===== -->
-  <section class="slide slide--active" data-slide="1">
+  <!-- ===== SLIDE 1 - INTRO IMAGE ===== -->
+  <section
+    class="slide slide--active slide--image"
+    data-slide="intro"
+    style="background-image: url('begin-resq.png');"
+    aria-label="ResQ intro"
+  ></section>
+
+  <!-- ===== SLIDE 2 - TITLE ===== -->
+  <section class="slide" data-slide="1">
     <div class="slide__watermark">01</div>
     <header class="head">
       <div class="brand"><svg class="icon"><use href="#i-siren"/></svg> ResQ</div>
@@ -998,11 +1032,11 @@
       <h1 class="hero"><span class="res">Res</span><span class="qmark">Q.</span></h1>
       <p class="tagline">Every second counts. <strong>Any phone. Any network.</strong></p>
       <p class="sub" style="margin-top: 40px;">
-        A single hotline number that connects any Nigerian, on any phone, to the nearest
-        trained responder in their neighbourhood. A government coordinator watches the
-        whole rescue happen on a live map.
+        The dispatch interface 112 can run on. One number connects any Nigerian, on any
+        phone, to the nearest trained responder in their neighbourhood. A government
+        coordinator watches the whole rescue happen on a live map.
       </p>
-      <div class="notes">Speaker A · 25s. Plant the tagline. Hold the feature phone for the rest of the talk.</div>
+      <div class="notes">Speaker A · 25s. Plant the tagline. Make clear: not replacing 112, giving it modern rails.</div>
     </div>
   </section>
 
@@ -1015,16 +1049,16 @@
     </header>
     <div class="body">
       <div class="eyebrow">The Problem</div>
-      <h2>Nigeria's emergency system is <span class="hl">broken</span>.</h2>
-      <p class="sub">Three failures stack into one outcome. Help that doesn't arrive in time.</p>
+      <h2>112 has the mandate. It needs the <span class="hl">rails</span>.</h2>
+      <p class="sub">Three gaps between the line a citizen dials and the help actually arriving.</p>
       <div class="cards cols-3">
         <article class="card">
           <div class="card__head">
             <span class="card__num">01</span>
             <span class="card__icon"><svg class="icon"><use href="#i-phone-off"/></svg></span>
           </div>
-          <h3>112 doesn't pick up</h3>
-          <p>The national emergency line exists on paper. In practice, call drop rates are high, dispatch is manual, and most LGAs have no integration.</p>
+          <h3>112 is a phone number, not a dispatch system</h3>
+          <p>The mandate exists. The modern dispatch layer to act on calls in seconds doesn't. Most LGAs have no integration at all.</p>
         </article>
         <article class="card tone-orange">
           <div class="card__head">
@@ -1056,10 +1090,11 @@
     </header>
     <div class="body">
       <div class="eyebrow">What ResQ Is</div>
-      <h2>ResQ is <span class="hl">not</span> an app.</h2>
+      <h2>The interface <span class="hl">112</span> can run on.</h2>
       <p class="sub lead" style="margin-top: 22px;">
-        It is the matching layer between citizens in crisis and the trained responders
-        already nearby, made visible to government in real time.
+        A dispatch layer that sits between the line a citizen dials and the trained
+        responders already nearby. Built so federal 112 and state SEMAs can plug in,
+        not so they get replaced.
       </p>
       <div class="triangle">
         <div class="actor">
@@ -1090,12 +1125,12 @@
       <div class="num">04 / 12</div>
     </header>
     <div class="body">
-      <div class="eyebrow">How You Reach Us</div>
+      <div class="eyebrow">How A Call Reaches Us</div>
       <h2>One number. <span class="hl">Every network.</span></h2>
       <p class="sub">
-        Anyone in Nigeria dials a single NCC-licensed hotline from any phone on any
-        network. The AI picks up, records what's happening, and dispatches help.
-        No app, no menu, no data plan required.
+        A call to 112 — or a ResQ-licensed shortcode — lands on the same intake.
+        The AI picks up, records what's happening, and dispatches help. No app,
+        no menu, no data plan required.
       </p>
       <div class="networks">
         <span class="net-badge"><svg class="icon"><use href="#i-check"/></svg> MTN</span>
@@ -1136,9 +1171,9 @@
       </div>
       <div class="pending-note">
         <svg class="icon"><use href="#i-info"/></svg>
-        <span>Hotline number and telco-location data pending NCC licensing and MTN / Airtel MOU. The intake, AI, and dispatcher pipeline run today against the Africa's Talking sandbox.</span>
+        <span>Federal 112 routing and telco-location data pending NCC + MTN / Airtel MOUs. The intake, AI, and dispatcher pipeline run today against the Africa's Talking sandbox.</span>
       </div>
-      <div class="notes">Speaker A · 55s. Location via call tracking is the line that makes this real.</div>
+      <div class="notes">Speaker A · 55s. Frame as the rails 112 plugs into, not a competing line.</div>
     </div>
   </section>
 
@@ -1319,13 +1354,13 @@
         <article class="card tone-orange">
           <div class="card__head">
             <span class="card__num">04</span>
-            <span class="card__icon"><svg class="icon"><use href="#i-users"/></svg></span>
+            <span class="card__icon"><svg class="icon"><use href="#i-handshake"/></svg></span>
           </div>
-          <h3>Public asset, public good</h3>
-          <p>Uses people the government already pays. NYSC, FRSC, off-duty health workers, civil defence.</p>
+          <h3>Plugs into 112, doesn't replace it</h3>
+          <p>An open dispatch interface federal 112 and state SEMAs adopt. Same emergency number citizens already know, working a hundred times faster behind the scenes.</p>
         </article>
       </div>
-      <div class="notes">Speaker B · 45s. Keywords: public infrastructure, audit by default, 774 LGAs.</div>
+      <div class="notes">Speaker B · 45s. Land the line: this is the layer 112 runs on. Keywords: public infrastructure, audit by default, 774 LGAs, 112-compatible.</div>
     </div>
   </section>
 
@@ -1444,7 +1479,7 @@
             <span class="col__num">REGULATORY</span>
           </div>
           <ul>
-            <li><svg class="icon"><use href="#i-key"/></svg><span>NCC-licensed national hotline number (primary entry point)</span></li>
+            <li><svg class="icon"><use href="#i-key"/></svg><span>Federal MOU to route 112 calls through ResQ</span></li>
             <li><svg class="icon"><use href="#i-key"/></svg><span>NCC USSD shortcode allocation (auxiliary entry)</span></li>
             <li><svg class="icon"><use href="#i-signal"/></svg><span>MTN and Airtel cell-tower triangulation MOU</span></li>
             <li><svg class="icon"><use href="#i-building"/></svg><span>State SEMA integrations and rollout</span></li>
@@ -1468,8 +1503,8 @@
       <div class="eyebrow">The Ask</div>
       <div class="keys cols-3" style="max-width: 1100px;">
         <div class="key">
-          <span class="key-icon"><svg class="icon"><use href="#i-key"/></svg></span>
-          <div><h4>License the hotline</h4><p>NCC via aggregator. Four to eight weeks.</p></div>
+          <span class="key-icon"><svg class="icon"><use href="#i-handshake"/></svg></span>
+          <div><h4>Wire 112 onto ResQ rails</h4><p>Federal MOU. One LGA pilot to start.</p></div>
         </div>
         <div class="key tone-emerald">
           <span class="key-icon"><svg class="icon"><use href="#i-flag"/></svg></span>
@@ -1477,7 +1512,7 @@
         </div>
         <div class="key tone-blue">
           <span class="key-icon"><svg class="icon"><use href="#i-chart"/></svg></span>
-          <div><h4>Publish numbers against 112</h4><p>A public response-time comparison.</p></div>
+          <div><h4>Publish the response-time lift</h4><p>Before and after, the same 112 number.</p></div>
         </div>
       </div>
       <h1 class="hero" style="margin-top: 64px;"><span class="res">Res</span><span class="qmark">Q.</span></h1>
@@ -1485,6 +1520,14 @@
       <div class="notes" style="margin-top: 32px; text-align: left; max-width: 720px;">Speaker B · 25s. Pause after the tagline. Walk away from the mic.</div>
     </div>
   </section>
+
+  <!-- ===== OUTRO IMAGE ===== -->
+  <section
+    class="slide slide--image"
+    data-slide="outro"
+    style="background-image: url('end-resq.png');"
+    aria-label="ResQ outro"
+  ></section>
 
 </div>
 
@@ -1496,6 +1539,18 @@
     const slides = Array.from(document.querySelectorAll('.slide'));
     const nav = document.getElementById('nav');
     let current = 0;
+
+    // Auto-rewrite the "NN / NN" counters in each slide header so adding or
+    // removing slides (e.g. the intro/outro images) doesn't require hand-
+    // editing every header. Image slides have no header — they're skipped.
+    const total = slides.length;
+    slides.forEach((s, i) => {
+      const num = s.querySelector('.head .num');
+      if (num) {
+        num.textContent =
+          String(i + 1).padStart(2, '0') + ' / ' + String(total).padStart(2, '0');
+      }
+    });
 
     slides.forEach((_, i) => {
       const dot = document.createElement('span');
