@@ -4,22 +4,32 @@
 
 @import "maplibre-gl/dist/maplibre-gl.css";
 
-/* Microinteractions used across buttons, rows, and tabs. */
+/* Microinteractions used across buttons, rows, tabs, and surface hovers. */
 @layer utilities {
   .btn-press {
     transition:
       transform 90ms ease,
-      background-color 120ms ease,
-      border-color 120ms ease,
-      box-shadow 120ms ease;
+      background-color 160ms ease,
+      border-color 160ms ease,
+      box-shadow 160ms ease,
+      color 160ms ease;
   }
   .btn-press:active {
     transform: translateY(1px) scale(0.98);
   }
   .row-hover {
     transition:
-      background-color 120ms ease,
-      border-color 120ms ease;
+      background-color 160ms ease,
+      border-color 160ms ease;
+  }
+  /* Calmer hover transition for cards and panels — keeps state changes
+     feeling cohesive across the app without being noisy. */
+  .surface-hover {
+    transition:
+      background-color 180ms ease,
+      border-color 180ms ease,
+      transform 180ms ease,
+      box-shadow 180ms ease;
   }
 }
 
@@ -31,7 +41,9 @@ html,
 body {
   background: #0a0a0a;
   color: #ededed;
-  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  /* Satoshi reads cleaner with a hair of negative tracking on body copy. */
+  letter-spacing: -0.005em;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* MapLibre popup ships with a white panel + tip. Re-skin them for the

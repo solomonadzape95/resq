@@ -4,6 +4,9 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { Incident } from "@resq/shared/types";
 import { api, apiUrl } from "@/lib/api";
+import { Badge } from "@/components/ui/Badge";
+import { Tabs } from "@/components/ui/Tabs";
+import { useMediaQuery } from "@/lib/useMediaQuery";
 
 interface ActiveIncident extends Incident {
   responders?: Array<{
@@ -79,32 +82,42 @@ export default function DemoPage() {
 
   return (
     <main className="min-h-screen bg-resq-dark text-neutral-100">
-      <header className="flex h-14 items-center justify-between border-b-2 border-neutral-900 bg-black/40 px-6">
-        <Link href="/" className="flex items-center gap-2 text-neutral-100 hover:text-white">
-          <span className="text-xl">🚨</span>
-          <span className="font-semibold tracking-tight">ResQ</span>
-          <span className="ml-3 border-l border-neutral-800 pl-3 text-xs uppercase tracking-widest text-neutral-500">
-            Live demo
+      <header className="flex h-14 items-center justify-between border-b border-neutral-900 bg-resq-panel/80 px-6 backdrop-blur">
+        <Link href="/" className="btn-press flex items-center gap-3 text-neutral-100">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-resq-red text-sm shadow-md shadow-resq-red/30">
+            🚨
           </span>
+          <span className="text-sm font-bold tracking-tight">ResQ</span>
+          <Badge tone="red" size="sm">
+            Live demo
+          </Badge>
         </Link>
-        <nav className="flex items-center gap-4 text-sm text-neutral-400">
-          <Link href="/simulator" className="hover:text-white">
+        <nav className="flex items-center gap-1.5">
+          <Link
+            href="/simulator"
+            className="btn-press rounded-full border border-neutral-800 bg-neutral-900/60 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-neutral-300 hover:border-neutral-700 hover:text-white"
+          >
             Open phone ↗
           </Link>
-          <Link href="/dashboard" className="hover:text-white">
+          <Link
+            href="/dashboard"
+            className="btn-press rounded-full border border-neutral-800 bg-neutral-900/60 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-neutral-300 hover:border-neutral-700 hover:text-white"
+          >
             Open dashboard ↗
           </Link>
         </nav>
       </header>
 
       {/* Hero strip */}
-      <section className="border-b-2 border-neutral-900 px-6 py-10">
+      <section className="border-b border-neutral-900 px-6 py-12">
         <div className="mx-auto max-w-6xl">
-          <p className="text-xs uppercase tracking-widest text-resq-red">See the system live</p>
-          <h1 className="mt-3 text-3xl font-bold leading-tight md:text-4xl">
+          <Badge tone="red" size="sm">
+            See the system live
+          </Badge>
+          <h1 className="mt-4 text-3xl font-bold leading-tight tracking-tight md:text-4xl">
             Three personas. <span className="text-resq-red">One pipeline.</span>
           </h1>
-          <p className="mt-3 max-w-3xl text-neutral-400">
+          <p className="mt-3 max-w-3xl leading-relaxed text-neutral-400">
             The phone simulator on the left, the coordinator dashboard in the middle, and the
             responder view on the right. Everything talks to the same backend you would see in
             production. Dial in the phone, watch the dashboard react, and watch the responder
@@ -113,44 +126,17 @@ export default function DemoPage() {
         </div>
       </section>
 
-      {/* Three-pane layout */}
-      <section className="px-4 py-8 md:px-6">
-        <div className="mx-auto grid max-w-[1600px] gap-4 md:grid-cols-[420px_minmax(0,1fr)_420px]">
-          <Pane
-            label="01 · Caller's phone"
-            description="Dial *384*1# or use Call ResQ mode. The line records and our AI handles the rest."
-            href="/simulator"
-            iframe={`/simulator?demo=1&_=${now}`}
-            height={620}
-            badge="Phone"
-          />
-          <Pane
-            label="02 · Coordinator dashboard"
-            description="The live map, incident list, and side panel. Every state change is timestamped and audited."
-            href="/dashboard"
-            iframe={`/dashboard?_=${now}`}
-            height={620}
-            badge="Dashboard"
-            wide
-          />
-          {responderUrl ? (
-            <Pane
-              label="03 · Responder view"
-              description={`Pretending to be ${responder?.user.name ?? "a responder"} on the ground. Accept the alert and update status as they go.`}
-              href={responderUrl}
-              iframe={responderUrl + (responderUrl.includes("?") ? "&" : "?") + `_=${now}`}
-              height={620}
-              badge="Responder"
-            />
-          ) : (
-            <ResponderEmpty />
-          )}
-        </div>
-      </section>
+      {/* Three-pane layout — switches to a Tabs view on mobile so we
+          don't stack three 620px iframes into a 1800px scroll column. */}
+      <PanesSection
+        now={now}
+        responderUrl={responderUrl}
+        responderName={responder?.user.name ?? null}
+      />
 
       {/* Walkthrough */}
-      <section className="border-t-2 border-neutral-900 bg-black/40 px-6 py-10">
-        <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-3">
+      <section className="border-t border-neutral-900 bg-black/30 px-6 py-12">
+        <div className="mx-auto grid max-w-6xl gap-3 md:grid-cols-3">
           <Step
             num="01"
             title="Place a call"
@@ -167,28 +153,130 @@ export default function DemoPage() {
             body="The responder view on the right gets the incoming alert. Tap Accept and the dashboard shows them en route."
           />
         </div>
-        <div className="mx-auto mt-8 max-w-6xl border-l-2 border-l-resq-red bg-neutral-900/40 px-5 py-4 text-sm text-neutral-300">
-          <strong className="block text-neutral-100">
-            What's live here:
+        <div className="mx-auto mt-8 max-w-6xl rounded-2xl border border-resq-red/30 bg-resq-red/5 px-5 py-4 text-sm text-neutral-300">
+          <strong className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-resq-red">
+            What&apos;s live here
           </strong>
-          The intake, AI triage, location extraction, dispatcher, and audit trail are all
-          running. The hotline number itself is pending NCC licensing; the USSD simulator
-          stands in for that channel.
+          <p className="mt-1 leading-relaxed">
+            The intake, AI triage, location extraction, dispatcher, and audit trail are all
+            running. The hotline number itself is pending NCC licensing; the USSD simulator
+            stands in for that channel.
+          </p>
         </div>
       </section>
 
       {/* Stats strip */}
       <DemoStats apiBase={apiUrl} />
 
-      <footer className="border-t-2 border-neutral-900 px-6 py-8 text-xs text-neutral-500">
+      <footer className="border-t border-neutral-900 px-6 py-8 text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <span>ResQ. Every second counts. Any phone. Any network.</span>
-          <Link href="/" className="hover:text-white">
+          <Link href="/" className="btn-press hover:text-white">
             ← Back to home
           </Link>
         </div>
       </footer>
     </main>
+  );
+}
+
+type PaneKey = "phone" | "dashboard" | "responder";
+
+function PanesSection({
+  now,
+  responderUrl,
+  responderName,
+}: {
+  now: number;
+  responderUrl: string | null;
+  responderName: string | null;
+}) {
+  const isMobile = useMediaQuery("(max-width: 767px)");
+  const [active, setActive] = useState<PaneKey>("phone");
+
+  const phonePane = (
+    <Pane
+      label="01 · Caller's phone"
+      description="Dial *384*1# or use Call ResQ mode. The line records and our AI handles the rest."
+      href="/simulator"
+      iframe={`/simulator?demo=1&_=${now}`}
+      height={
+        isMobile && typeof window !== "undefined"
+          ? Math.max(360, Math.round(window.innerHeight * 0.7))
+          : 620
+      }
+      badge="Phone"
+    />
+  );
+
+  const dashboardPane = (
+    <Pane
+      label="02 · Coordinator dashboard"
+      description="The live map, incident list, and side panel. Every state change is timestamped and audited."
+      href="/dashboard"
+      iframe={`/dashboard?_=${now}`}
+      height={
+        isMobile && typeof window !== "undefined"
+          ? Math.max(360, Math.round(window.innerHeight * 0.7))
+          : 620
+      }
+      badge="Dashboard"
+    />
+  );
+
+  const responderPane = responderUrl ? (
+    <Pane
+      label="03 · Responder view"
+      description={`Pretending to be ${responderName ?? "a responder"} on the ground. Accept the alert and update status as they go.`}
+      href={responderUrl}
+      iframe={
+        responderUrl + (responderUrl.includes("?") ? "&" : "?") + `_=${now}`
+      }
+      height={
+        isMobile && typeof window !== "undefined"
+          ? Math.max(360, Math.round(window.innerHeight * 0.7))
+          : 620
+      }
+      badge="Responder"
+    />
+  ) : (
+    <ResponderEmpty />
+  );
+
+  if (isMobile) {
+    return (
+      <section className="px-4 py-6">
+        <div className="mx-auto max-w-md">
+          <Tabs
+            ariaLabel="Demo pane"
+            value={active}
+            onChange={setActive}
+            items={[
+              { value: "phone", label: "Phone" },
+              { value: "dashboard", label: "Dashboard" },
+              { value: "responder", label: "Responder" },
+            ]}
+          />
+          <div className="mt-4">
+            {active === "phone"
+              ? phonePane
+              : active === "dashboard"
+                ? dashboardPane
+                : responderPane}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="px-4 py-8 md:px-6">
+      <div className="mx-auto grid max-w-[1600px] gap-4 md:grid-cols-[420px_minmax(0,1fr)_420px]">
+        {phonePane}
+        {dashboardPane}
+        {responderPane}
+      </div>
+    </section>
   );
 }
 
@@ -199,7 +287,6 @@ function Pane({
   iframe,
   height,
   badge,
-  wide,
 }: {
   label: string;
   description: string;
@@ -210,25 +297,29 @@ function Pane({
   wide?: boolean;
 }) {
   return (
-    <div className={`flex flex-col border-2 border-neutral-900 bg-neutral-950 ${wide ? "" : ""}`}>
-      <header className="flex items-center justify-between border-b-2 border-neutral-900 bg-black/40 px-4 py-3">
-        <div>
-          <div className="text-[10px] uppercase tracking-widest text-neutral-500">{label}</div>
-          <div className="mt-0.5 text-sm font-semibold text-white">{badge}</div>
+    <div className="surface-hover flex flex-col rounded-2xl border border-neutral-900 bg-neutral-900/30 hover:border-neutral-800">
+      <header className="flex items-center justify-between border-b border-neutral-900 px-4 py-3">
+        <div className="flex items-center gap-2">
+          <Badge size="sm">{badge}</Badge>
+          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
+            {label}
+          </span>
         </div>
         <Link
           href={href}
           target="_blank"
           rel="noreferrer"
-          className="text-[11px] uppercase tracking-widest text-neutral-400 hover:text-white"
+          className="btn-press text-[10px] font-semibold uppercase tracking-wider text-neutral-400 hover:text-white"
         >
           Open ↗
         </Link>
       </header>
-      <div className="px-4 pt-3 text-[11px] text-neutral-400 leading-relaxed">{description}</div>
+      <div className="px-4 pt-3 text-[11px] leading-relaxed text-neutral-400">
+        {description}
+      </div>
       <div className="p-3">
         <div
-          className="overflow-hidden border border-neutral-900 bg-black"
+          className="overflow-hidden rounded-xl border border-neutral-900 bg-black"
           style={{ height }}
         >
           <iframe
@@ -246,16 +337,16 @@ function Pane({
 
 function ResponderEmpty() {
   return (
-    <div className="flex flex-col border-2 border-neutral-900 bg-neutral-950">
-      <header className="flex items-center justify-between border-b-2 border-neutral-900 bg-black/40 px-4 py-3">
-        <div>
-          <div className="text-[10px] uppercase tracking-widest text-neutral-500">
+    <div className="flex flex-col rounded-2xl border border-neutral-900 bg-neutral-900/30">
+      <header className="flex items-center justify-between border-b border-neutral-900 px-4 py-3">
+        <div className="flex items-center gap-2">
+          <Badge size="sm">Responder</Badge>
+          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
             03 · Responder view
-          </div>
-          <div className="mt-0.5 text-sm font-semibold text-white">Responder</div>
+          </span>
         </div>
       </header>
-      <div className="flex h-[620px] items-center justify-center p-6 text-center text-sm text-neutral-400">
+      <div className="flex h-[620px] items-center justify-center p-6 text-center text-sm leading-relaxed text-neutral-400">
         Waiting for the first active incident. Dial in the phone on the left to spawn one,
         then this pane will load the matched responder&apos;s view.
       </div>
@@ -265,10 +356,12 @@ function ResponderEmpty() {
 
 function Step({ num, title, body }: { num: string; title: string; body: string }) {
   return (
-    <div className="border-l-2 border-l-resq-red bg-neutral-950 px-5 py-4">
-      <div className="text-xs uppercase tracking-widest text-resq-red">{num}</div>
-      <div className="mt-2 text-lg font-semibold text-white">{title}</div>
-      <p className="mt-2 text-sm text-neutral-400">{body}</p>
+    <div className="surface-hover rounded-2xl border border-neutral-900 bg-neutral-900/40 p-5 hover:border-neutral-800">
+      <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-resq-red">
+        Step {num}
+      </div>
+      <div className="mt-2 text-lg font-bold tracking-tight text-white">{title}</div>
+      <p className="mt-2 text-sm leading-relaxed text-neutral-400">{body}</p>
     </div>
   );
 }
@@ -303,8 +396,8 @@ function DemoStats({ apiBase }: { apiBase: string }) {
   if (!counts) return null;
 
   return (
-    <section className="border-t-2 border-neutral-900 px-6 py-8">
-      <div className="mx-auto grid max-w-6xl gap-4 md:grid-cols-3">
+    <section className="border-t border-neutral-900 px-6 py-10">
+      <div className="mx-auto grid max-w-6xl gap-3 md:grid-cols-3">
         <Stat label="Active incidents" value={counts.incidents} />
         <Stat label="Verified responders" value={counts.responders} />
         <Stat label="On duty now" value={counts.available} accent="emerald" />
@@ -322,11 +415,15 @@ function Stat({
   value: number;
   accent?: "red" | "emerald";
 }) {
-  const color = accent === "emerald" ? "text-emerald-400" : "text-resq-red";
+  const color = accent === "emerald" ? "text-emerald-300" : "text-resq-red";
   return (
-    <div className="border-2 border-neutral-900 bg-neutral-950 p-5">
-      <div className="text-[10px] uppercase tracking-widest text-neutral-500">{label}</div>
-      <div className={`mt-2 font-mono text-4xl font-bold ${color}`}>{value}</div>
+    <div className="surface-hover rounded-2xl border border-neutral-900 bg-neutral-900/40 p-5 hover:border-neutral-800">
+      <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
+        {label}
+      </div>
+      <div className={`mt-2 font-mono text-4xl font-bold tabular-nums ${color}`}>
+        {value}
+      </div>
     </div>
   );
 }

@@ -13,11 +13,13 @@ import maplibregl from "maplibre-gl";
 import type { Incident } from "@resq/shared/types";
 import {
   STATUS_LABEL,
+  STATUS_TONE,
   STATUS_VISUAL,
   TYPE_COLOR,
   TYPE_LABEL,
   timeAgo,
 } from "@/lib/incidents";
+import { Badge } from "@/components/ui/Badge";
 
 const MAP_STYLE = "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
 const DEFAULT_CENTRE = { lat: 4.8156, lng: 7.0498, zoom: 11 };
@@ -47,6 +49,10 @@ export interface IncidentMapProps {
    *  which city is being coordinated so it doesn't default to Port Harcourt
    *  every time. Falls back to PH centre when omitted. */
   centre?: { lat: number; lng: number; zoom: number };
+  /** When set, the camera flies to this incident's coords on every change.
+   *  Coordinator workflow: a newly arrived incident or a newly selected row
+   *  pans the camera so the operator never has to hunt for the pin. */
+  focusedIncidentId?: string | null;
 }
 
 export function IncidentMap({
@@ -56,6 +62,7 @@ export function IncidentMap({
   selectedId,
   onSelect,
   centre,
+  focusedIncidentId,
 }: IncidentMapProps) {
   const mapRef = useRef<MapRef | null>(null);
   const [popupId, setPopupId] = useState<string | null>(null);
@@ -138,6 +145,21 @@ export function IncidentMap({
     }
     fittedRef.current = true;
   }, [mapReady, placed]);
+
+  // Camera follow: when the dashboard tells us which incident to focus on
+  // (newly arrived or newly selected), pan/zoom to it. Cheaper than
+  // fitBounds and feels like the camera is "tracking the action".
+  useEffect(() => {
+    if (!mapReady || !mapRef.current || !focusedIncidentId) return;
+    const target = placed.find((i) => i.id === focusedIncidentId);
+    if (!target || target.locationLat == null || target.locationLng == null) return;
+    mapRef.current.flyTo({
+      center: [target.locationLng, target.locationLat],
+      zoom: 15,
+      duration: 900,
+      essential: true,
+    });
+  }, [focusedIncidentId, mapReady, placed]);
 
   return (
     <MapGL
@@ -275,6 +297,13 @@ export function IncidentMap({
 
 // ---- Incident marker ----------------------------------------------------
 
+const TYPE_EMOJI: Record<Incident["type"], string> = {
+  medical: "🩹",
+  fire: "🔥",
+  crime: "🚨",
+  accident: "🚗",
+};
+
 function IncidentMarker({
   incident,
   dim,
@@ -287,50 +316,57 @@ function IncidentMarker({
   const visual = STATUS_VISUAL[incident.status];
   const typeColor = TYPE_COLOR[incident.type];
   const dotColor = visual.dim ? "#525252" : typeColor;
-  // Outer ring sizes
-  const ringSize = visual.ring === "double" ? 36 : visual.ring === "dashed" ? 32 : 0;
+  const ringSize = visual.ring === "double" ? 48 : visual.ring === "dashed" ? 44 : 0;
   return (
     <div
       style={{
-        width: 40,
-        height: 40,
+        width: 48,
         position: "relative",
         display: "flex",
+        flexDirection: "column",
         alignItems: "center",
-        justifyContent: "center",
-        opacity: dim ? 0.25 : 1,
-        transform: `scale(${emphasised ? 1.15 : 1})`,
-        transformOrigin: "center",
+        opacity: dim ? 0.3 : 1,
+        transform: `scale(${emphasised ? 1.12 : 1})`,
+        transformOrigin: "center top",
         transition: "opacity 200ms ease, transform 200ms ease",
         pointerEvents: dim ? "none" : "auto",
         cursor: "pointer",
       }}
     >
-      {visual.pulse ? (
-        <span
-          className="animate-pulse-ring"
-          style={{
-            position: "absolute",
-            inset: 8,
-            borderRadius: 9999,
-            background: typeColor,
-            opacity: 0.45,
-          }}
-        />
-      ) : null}
-      {visual.ring === "dashed" ? (
-        <span
-          style={{
-            position: "absolute",
-            width: ringSize,
-            height: ringSize,
-            borderRadius: 9999,
-            border: `2px dashed ${typeColor}`,
-          }}
-        />
-      ) : null}
-      {visual.ring === "double" ? (
-        <>
+      <div
+        style={{
+          position: "relative",
+          width: 40,
+          height: 40,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {visual.pulse ? (
+          <span
+            className="animate-pulse-ring"
+            style={{
+              position: "absolute",
+              inset: 4,
+              borderRadius: 9999,
+              background: typeColor,
+              opacity: 0.5,
+            }}
+          />
+        ) : null}
+        {visual.ring === "dashed" ? (
+          <span
+            style={{
+              position: "absolute",
+              width: ringSize,
+              height: ringSize,
+              borderRadius: 9999,
+              border: `2px dashed ${typeColor}`,
+            }}
+          />
+        ) : null}
+        {visual.ring === "double" ? (
           <span
             style={{
               position: "absolute",
@@ -340,35 +376,58 @@ function IncidentMarker({
               border: `2px solid ${typeColor}`,
             }}
           />
-          <span
-            style={{
-              position: "absolute",
-              width: 24,
-              height: 24,
-              borderRadius: 9999,
-              border: `1px solid ${typeColor}`,
-            }}
-          />
-        </>
+        ) : null}
+        {/* Filled circular avatar w/ emoji. Matches the reference pattern
+            of a logo-bearing pin rather than an undifferentiated dot. */}
+        <span
+          style={{
+            position: "relative",
+            width: 32,
+            height: 32,
+            borderRadius: 9999,
+            background: dotColor,
+            boxShadow:
+              "0 0 0 2px rgba(255,255,255,0.92), 0 4px 14px rgba(0,0,0,0.55)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "white",
+            fontSize: 16,
+            lineHeight: 1,
+          }}
+        >
+          {visual.glyph === "check" ? (
+            <Glyph d="M5 12l5 5L20 7" />
+          ) : visual.glyph === "cross" ? (
+            <Glyph d="M6 6l12 12M18 6L6 18" />
+          ) : (
+            <span style={{ filter: "saturate(1.2)" }}>
+              {TYPE_EMOJI[incident.type]}
+            </span>
+          )}
+        </span>
+      </div>
+      {/* Severity / triage pill below the marker — the "100" / "15" chips
+          in the reference. Hidden for closed states or when there's no
+          triage score yet (avoids a meaningless empty pill). */}
+      {!visual.dim && incident.aiTriageScore != null ? (
+        <span
+          style={{
+            marginTop: -4,
+            background: "#ffffff",
+            color: "#0a0a0a",
+            fontSize: 10,
+            fontWeight: 700,
+            lineHeight: 1,
+            padding: "3px 6px",
+            borderRadius: 9999,
+            boxShadow: "0 2px 6px rgba(0,0,0,0.45)",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {incident.aiTriageScore}
+        </span>
       ) : null}
-      <span
-        style={{
-          position: "relative",
-          width: 16,
-          height: 16,
-          borderRadius: 9999,
-          background: dotColor,
-          boxShadow:
-            "0 0 0 2px rgba(255,255,255,0.85), 0 2px 8px rgba(0,0,0,0.6)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "white",
-        }}
-      >
-        {visual.glyph === "check" ? <Glyph d="M5 12l5 5L20 7" /> : null}
-        {visual.glyph === "cross" ? <Glyph d="M6 6l12 12M18 6L6 18" /> : null}
-      </span>
     </div>
   );
 }
@@ -455,9 +514,8 @@ function IncidentPopupCard({
   onOpenDetails: () => void;
   onClose: () => void;
 }) {
-  const visual = STATUS_VISUAL[incident.status];
   return (
-    <div className="min-w-[220px] max-w-[260px] space-y-2 rounded-lg bg-neutral-950 p-3 text-neutral-100 shadow-xl">
+    <div className="animate-card-pop min-w-[240px] max-w-[280px] space-y-2.5 rounded-2xl border border-neutral-800 bg-neutral-950/95 p-3.5 text-neutral-100 shadow-2xl backdrop-blur">
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2">
           <span
@@ -465,35 +523,33 @@ function IncidentPopupCard({
             style={{ background: TYPE_COLOR[incident.type] }}
           />
           <span className="text-sm font-semibold">{TYPE_LABEL[incident.type]}</span>
-          {incident.aiSeverity ? (
-            <span className="text-xs uppercase tracking-wide text-neutral-400">
-              · {incident.aiSeverity}
-            </span>
-          ) : null}
         </div>
         <button
           type="button"
           onClick={onClose}
-          className="text-neutral-500 transition hover:text-white"
+          className="btn-press text-neutral-500 transition hover:text-white"
           aria-label="Close"
         >
           ✕
         </button>
       </div>
-      <div className={`inline-block rounded px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide ${visual.badgeClass}`}>
-        {STATUS_LABEL[incident.status]}
+      <div className="flex items-center gap-1.5">
+        <Badge tone={STATUS_TONE[incident.status]} size="sm">
+          {STATUS_LABEL[incident.status]}
+        </Badge>
+        {incident.aiSeverity ? <Badge size="sm">{incident.aiSeverity}</Badge> : null}
       </div>
       <div className="text-xs text-neutral-300">
         {incident.locationText ?? "Location pending"}
       </div>
-      <div className="flex items-center justify-between text-xs text-neutral-400">
+      <div className="flex items-center justify-between text-[11px] tabular-nums text-neutral-500">
         <span className="font-mono">{incident.callerPhone ?? "Unknown caller"}</span>
         <span>{timeAgo(incident.createdAt)}</span>
       </div>
       {incident.aiTriageScore != null ? (
-        <div className="text-xs text-neutral-400">
+        <div className="text-[11px] uppercase tracking-wider text-neutral-500">
           Triage{" "}
-          <span className="font-semibold text-neutral-200">
+          <span className="font-semibold tabular-nums text-neutral-200">
             {incident.aiTriageScore}/10
           </span>
         </div>
@@ -501,7 +557,7 @@ function IncidentPopupCard({
       <button
         type="button"
         onClick={onOpenDetails}
-        className="mt-1 w-full rounded-md bg-resq-red px-3 py-1.5 text-xs font-medium text-white transition hover:bg-red-700"
+        className="btn-press mt-1 w-full rounded-xl bg-resq-red px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-white shadow-lg shadow-resq-red/20 hover:bg-red-700"
       >
         Open details →
       </button>
@@ -517,7 +573,7 @@ function ResponderPopupCard({
   onClose: () => void;
 }) {
   return (
-    <div className="min-w-[200px] max-w-[260px] space-y-2 rounded-lg bg-neutral-950 p-3 text-neutral-100 shadow-xl">
+    <div className="animate-card-pop min-w-[220px] max-w-[280px] space-y-2 rounded-2xl border border-neutral-800 bg-neutral-950/95 p-3.5 text-neutral-100 shadow-2xl backdrop-blur">
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2">
           <span
@@ -533,21 +589,32 @@ function ResponderPopupCard({
         <button
           type="button"
           onClick={onClose}
-          className="text-neutral-500 transition hover:text-white"
+          className="btn-press text-neutral-500 transition hover:text-white"
           aria-label="Close"
         >
           ✕
         </button>
       </div>
-      <div className="text-xs uppercase tracking-wide text-neutral-400">
+      <Badge
+        size="sm"
+        tone={
+          responder.status === "available"
+            ? "emerald"
+            : responder.status === "busy"
+              ? "amber"
+              : "neutral"
+        }
+      >
         {responder.status.replace("_", " ")}
-      </div>
+      </Badge>
       <div className="text-xs text-neutral-300">
         {responder.skills.length > 0 ? responder.skills.join(", ") : "—"}
       </div>
-      <div className="font-mono text-xs text-neutral-400">{responder.phone}</div>
+      <div className="font-mono text-[11px] tabular-nums text-neutral-500">
+        {responder.phone}
+      </div>
       {responder.incidentIds.length > 0 ? (
-        <div className="rounded bg-neutral-900 px-2 py-1 text-xs text-neutral-300">
+        <div className="rounded-lg bg-neutral-900/80 px-2.5 py-1.5 text-[11px] uppercase tracking-wider text-neutral-300">
           On {responder.incidentIds.length} incident
           {responder.incidentIds.length > 1 ? "s" : ""}
         </div>

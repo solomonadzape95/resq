@@ -1,4 +1,5 @@
 import type { IncidentStatus, IncidentType, Severity } from "@resq/shared/types";
+import type { BadgeTone } from "@/components/ui/Badge";
 
 export const TYPE_COLOR: Record<IncidentType, string> = {
   medical: "#dc2626",
@@ -46,6 +47,26 @@ export interface StatusVisual {
   /** Pill colour for the status badge in the popup card. */
   badgeClass: string;
 }
+
+// Single source of truth for which Badge tone each status uses. Keeps the
+// IncidentList, IncidentPanel, IncidentMap popups, etc. in lockstep so a
+// triaged badge always reads the same amber across the app.
+export const STATUS_TONE: Record<IncidentStatus, BadgeTone> = {
+  new: "rose",
+  triaged: "amber",
+  assigned: "sky",
+  active: "emerald",
+  resolved: "neutral",
+  false_alarm: "neutral",
+  cancelled: "neutral",
+};
+
+export const SEVERITY_TONE: Record<Severity, BadgeTone> = {
+  low: "neutral",
+  medium: "amber",
+  high: "amber",
+  critical: "rose",
+};
 
 export const STATUS_VISUAL: Record<IncidentStatus, StatusVisual> = {
   new: {
@@ -174,4 +195,30 @@ export function timeAgo(iso: string): string {
   if (diff < 60) return `${Math.floor(diff)}s ago`;
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
   return `${Math.floor(diff / 3600)}h ago`;
+}
+
+// Great-circle distance in kilometres. Mirror of apps/api/src/services/matcher.ts
+// haversineKm so the dashboard can compute responder distance without a
+// round-trip — keeps the ETA row reactive as responder pins move.
+const EARTH_R_KM = 6371;
+export function kmBetween(
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number,
+): number {
+  const toRad = (n: number) => (n * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return 2 * EARTH_R_KM * Math.asin(Math.sqrt(a));
+}
+
+// Rough urban ETA: 30 km/h is realistic for Lagos / PH traffic. Returns
+// whole minutes, minimum 1. Used as the fallback when the responder app
+// hasn't supplied its own ETA via /alerts/:id/respond.
+export function etaMinutesFromKm(distanceKm: number): number {
+  return Math.max(1, Math.round((distanceKm / 30) * 60));
 }

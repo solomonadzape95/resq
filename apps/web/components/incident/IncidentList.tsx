@@ -1,8 +1,23 @@
 "use client";
 
 import type { Incident } from "@resq/shared/types";
-import { STATUS_LABEL, STATUS_VISUAL, TYPE_COLOR, TYPE_LABEL, timeAgo } from "@/lib/incidents";
+import {
+  SEVERITY_TONE,
+  STATUS_LABEL,
+  STATUS_TONE,
+  TYPE_COLOR,
+  TYPE_LABEL,
+  timeAgo,
+} from "@/lib/incidents";
+import { Badge } from "@/components/ui/Badge";
 import clsx from "clsx";
+
+const TYPE_EMOJI: Record<Incident["type"], string> = {
+  medical: "🩹",
+  fire: "🔥",
+  crime: "🚨",
+  accident: "🚗",
+};
 
 export function IncidentList({
   incidents,
@@ -15,59 +30,75 @@ export function IncidentList({
 }) {
   if (incidents.length === 0) {
     return (
-      <div className="flex h-full items-center justify-center p-6 text-center text-sm text-neutral-500">
-        No active incidents.
-        <br />
-        Dial *384*1# on a test phone to fire one.
+      <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center text-sm text-neutral-500">
+        <span className="text-2xl opacity-50">📭</span>
+        <p>No active incidents.</p>
+        <p className="text-xs text-neutral-600">
+          Dial <span className="font-mono">*384*1#</span> on a test phone to fire one.
+        </p>
       </div>
     );
   }
   return (
-    <ul>
-      {incidents.map((i) => (
-        <li
-          key={i.id}
-          onClick={() => onSelect(i.id)}
-          className={clsx(
-            "row-hover cursor-pointer border-b-2 border-l-4 border-neutral-900 p-4",
-            selectedId === i.id
-              ? "border-l-resq-red bg-neutral-900"
-              : "border-l-transparent hover:border-l-neutral-700 hover:bg-neutral-900/60",
-          )}
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+    <ul className="space-y-1.5 p-2">
+      {incidents.map((i) => {
+        const isSelected = selectedId === i.id;
+        const typeColor = TYPE_COLOR[i.type];
+        return (
+          <li
+            key={i.id}
+            onClick={() => onSelect(i.id)}
+            className={clsx(
+              "surface-hover btn-press cursor-pointer rounded-xl border px-3 py-2.5",
+              isSelected
+                ? "border-resq-red/50 bg-resq-red/10"
+                : "border-neutral-900 bg-neutral-900/30 hover:border-neutral-800 hover:bg-neutral-900/60",
+            )}
+          >
+            <div className="flex items-start gap-3">
+              {/* Type avatar — circular, type-coloured, emoji centre. */}
               <span
-                className="h-2.5 w-2.5 rounded-full"
-                style={{ background: TYPE_COLOR[i.type] }}
-              />
-              <span className="font-medium text-neutral-100">
-                {TYPE_LABEL[i.type]}
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-base shadow-md"
+                style={{
+                  background: typeColor,
+                  boxShadow: "0 0 0 1px rgba(255,255,255,0.08)",
+                }}
+              >
+                <span style={{ filter: "saturate(1.2)" }}>{TYPE_EMOJI[i.type]}</span>
               </span>
-              {i.aiSeverity ? (
-                <span className="rounded bg-neutral-800 px-1.5 py-0.5 text-xs uppercase text-neutral-300">
-                  {i.aiSeverity}
-                </span>
-              ) : null}
+
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="truncate text-sm font-semibold text-neutral-100">
+                    {TYPE_LABEL[i.type]}
+                  </span>
+                  <span className="shrink-0 text-[11px] tabular-nums text-neutral-500">
+                    {timeAgo(i.createdAt)}
+                  </span>
+                </div>
+                <p className="mt-0.5 truncate text-xs text-neutral-400">
+                  {i.locationText ?? i.callerPhone ?? "Location pending"}
+                </p>
+                <div className="mt-1.5 flex items-center gap-1.5">
+                  <Badge tone={STATUS_TONE[i.status]} size="sm">
+                    {STATUS_LABEL[i.status]}
+                  </Badge>
+                  {i.aiSeverity ? (
+                    <Badge tone={SEVERITY_TONE[i.aiSeverity]} size="sm">
+                      {i.aiSeverity}
+                    </Badge>
+                  ) : null}
+                  {i.aiTriageScore != null ? (
+                    <span className="text-[10px] tabular-nums text-neutral-500">
+                      · {i.aiTriageScore}/10
+                    </span>
+                  ) : null}
+                </div>
+              </div>
             </div>
-            <span className="text-xs text-neutral-500">{timeAgo(i.createdAt)}</span>
-          </div>
-          <div className="mt-1 truncate text-xs text-neutral-400">
-            {i.callerPhone ?? "Unknown caller"}
-            {i.locationText ? ` · ${i.locationText}` : ""}
-          </div>
-          <div className="mt-1 flex items-center gap-2 text-xs">
-            <span
-              className={`rounded px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide ${STATUS_VISUAL[i.status].badgeClass}`}
-            >
-              {STATUS_LABEL[i.status]}
-            </span>
-            {i.aiTriageScore != null ? (
-              <span className="text-neutral-500">triage {i.aiTriageScore}/10</span>
-            ) : null}
-          </div>
-        </li>
-      ))}
+          </li>
+        );
+      })}
     </ul>
   );
 }

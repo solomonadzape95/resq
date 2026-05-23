@@ -60,3 +60,78 @@ export function logSigVerdict(verdict: SigVerdict, agentId: string | undefined) 
   }
   logger.warn({ verdict, agentId }, "[elevenlabs] webhook signature did not pass");
 }
+
+// Server-side speech-to-text via ElevenLabs Scribe. Used as a fallback when
+// the browser's Web Speech API didn't produce a transcript (iOS Safari,
+// Firefox, denied permissions, etc). The result tells the caller WHY a
+// transcription didn't land so the API can return a specific reason to
+// the client instead of the generic "no speech".
+export type SttResult =
+  | { kind: "ok"; text: string }
+  | { kind: "not_configured" }
+  | { kind: "empty" }
+  | { kind: "failed"; status?: number; message?: string };
+
+export async function transcribeAudio(
+  audio: Buffer,
+  mimeType: string,
+): Promise<SttResult> {
+  if (!env.ELEVENLABS_API_KEY) {
+    logger.warn("[elevenlabs] STT skipped — ELEVENLABS_API_KEY missing");
+    return { kind: "not_configured" };
+  }
+  // The web-app MediaRecorder typically produces audio/webm;codecs=opus,
+  // but on some Safari builds it's audio/mp4. Either is accepted by Scribe.
+  // We strip codec parameters because the multipart filename ext is what
+  // Scribe inspects, not the Blob content-type header.
+  const baseMime = mimeType.split(";")[0].trim() || "audio/webm";
+  const ext = baseMime.includes("mp4")
+    ? "mp4"
+    : baseMime.includes("ogg")
+      ? "ogg"
+      : baseMime.includes("wav")
+        ? "wav"
+        : "webm";
+
+  const form = new FormData();
+  form.append("model_id", "scribe_v1");
+  // Cast through Uint8Array → Blob; node's Blob accepts ArrayBufferView.
+  form.append(
+    "file",
+    new Blob([new Uint8Array(audio)], { type: baseMime }),
+    `voicemail.${ext}`,
+  );
+
+  try {
+    const res = await fetch("https://api.elevenlabs.io/v1/speech-to-text", {
+      method: "POST",
+      headers: { "xi-api-key": env.ELEVENLABS_API_KEY },
+      body: form,
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      logger.warn(
+        { status: res.status, text: text.slice(0, 300) },
+        "[elevenlabs] STT non-2xx",
+      );
+      return {
+        kind: "failed",
+        status: res.status,
+        message: text.slice(0, 200),
+      };
+    }
+    const data = (await res.json()) as { text?: string };
+    const trimmed = data.text?.trim() ?? "";
+    if (trimmed.length === 0) {
+      logger.info({ bytes: audio.length }, "[elevenlabs] STT returned empty text");
+      return { kind: "empty" };
+    }
+    return { kind: "ok", text: trimmed };
+  } catch (err) {
+    logger.error({ err }, "[elevenlabs] STT request failed");
+    return {
+      kind: "failed",
+      message: err instanceof Error ? err.message : String(err),
+    };
+  }
+}

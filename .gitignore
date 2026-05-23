@@ -11,3 +11,12 @@ dist/
 coverage/
 .vscode/
 .idea/
+
+# Pitch slide illustrations — kept local, never committed (heavy PNGs).
+Calling-amico.png
+Firefighter-pana.png
+Grid design-bro.png
+Road sign-bro.png
+Robot face-rafiki.png
+Smart mobility-pana.png
+Team spirit-cuate.png

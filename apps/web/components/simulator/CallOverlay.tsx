@@ -1,5 +1,7 @@
 "use client";
 
+import { Badge } from "@/components/ui/Badge";
+
 const TYPE_LABEL: Record<string, string> = {
   medical: "Medical emergency",
   fire: "Fire emergency",
@@ -16,29 +18,41 @@ export interface CallOverlayProps {
 
 export function CallOverlay({ callerName, type, onAnswer, onDecline }: CallOverlayProps) {
   return (
-    <div className="flex h-full flex-col items-center justify-between rounded-sm border-2 border-emerald-500/40 bg-black/95 p-4 text-center text-emerald-100">
-      <div className="mt-4 flex flex-col items-center gap-3">
-        <span
-          aria-hidden
-          className="animate-ring-shake text-4xl"
-          style={{ filter: "drop-shadow(0 0 8px rgba(16,185,129,0.6))" }}
-        >
-          📞
-        </span>
-        <div className="text-[10px] uppercase tracking-widest text-emerald-300/80">
+    <div className="animate-card-pop flex h-full flex-col items-center justify-between rounded-2xl border border-white/5 bg-gradient-to-b from-neutral-950 to-black p-4 text-center backdrop-blur">
+      <div className="mt-3 flex flex-col items-center gap-3">
+        <Badge tone="emerald" size="sm">
           Incoming call
+        </Badge>
+        <div className="relative flex h-24 w-24 items-center justify-center">
+          {/* Concentric pulse rings — staggered delays for a phone-ring feel. */}
+          <span
+            className="absolute inset-0 rounded-full border border-emerald-400/50 animate-pulse-ring"
+            style={{ animationDelay: "0s" }}
+          />
+          <span
+            className="absolute inset-0 rounded-full border border-emerald-400/35 animate-pulse-ring"
+            style={{ animationDelay: "0.5s" }}
+          />
+          <span
+            className="relative flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-200 ring-1 ring-emerald-400/40 animate-ring-shake"
+            aria-hidden
+          >
+            <PhoneIcon />
+          </span>
         </div>
-        <div className="text-base font-semibold text-white">{callerName}</div>
-        <div className="text-xs text-emerald-200/80">
-          {TYPE_LABEL[type] ?? "Emergency callback"}
+        <div className="space-y-1">
+          <div className="text-base font-semibold text-white">{callerName}</div>
+          <div className="text-[11px] uppercase tracking-wider text-emerald-300/80">
+            {TYPE_LABEL[type] ?? "Emergency callback"}
+          </div>
         </div>
       </div>
 
-      <div className="mb-2 grid w-full grid-cols-2 gap-3">
+      <div className="mb-1 grid w-full grid-cols-2 gap-3">
         <button
           type="button"
           onClick={onDecline}
-          className="btn-press flex h-14 items-center justify-center border-2 border-red-500/50 bg-red-600 text-white"
+          className="btn-press flex h-14 items-center justify-center rounded-full bg-red-600 text-white shadow-lg shadow-red-900/50 hover:bg-red-500"
           aria-label="Decline"
         >
           <HangupIcon />
@@ -46,7 +60,7 @@ export function CallOverlay({ callerName, type, onAnswer, onDecline }: CallOverl
         <button
           type="button"
           onClick={onAnswer}
-          className="btn-press flex h-14 items-center justify-center border-2 border-emerald-400/60 bg-emerald-600 text-white"
+          className="btn-press flex h-14 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg shadow-emerald-900/50 hover:bg-emerald-500"
           aria-label="Answer"
         >
           <PhoneIcon />

@@ -26,29 +26,32 @@ export interface KeypadProps {
 export function Keypad({ onKey, onCall, onHangup, callEnabled, callActive }: KeypadProps) {
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-2.5">
         {KEYS.map((k) => (
           <button
             key={k.digit}
             type="button"
             onClick={() => onKey(k.digit)}
-            className="flex h-14 flex-col items-center justify-center rounded-full bg-neutral-800 text-neutral-100 transition active:scale-95 active:bg-neutral-700"
+            className="btn-press group relative flex h-14 flex-col items-center justify-center rounded-full bg-gradient-to-b from-neutral-800 to-neutral-900 text-neutral-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition hover:from-neutral-700 hover:to-neutral-800 active:from-neutral-900 active:to-neutral-950"
           >
-            <span className="text-2xl font-semibold leading-none">{k.digit}</span>
+            <span className="text-2xl font-semibold leading-none tabular-nums">
+              {k.digit}
+            </span>
             {k.letters ? (
-              <span className="mt-0.5 text-[10px] font-medium tracking-widest text-neutral-500">
+              <span className="mt-0.5 text-[9px] font-semibold tracking-[0.2em] text-neutral-500">
                 {k.letters}
               </span>
             ) : null}
           </button>
         ))}
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-2.5">
         <button
           type="button"
           onClick={onCall}
           disabled={!callEnabled || callActive}
-          className="flex h-14 items-center justify-center rounded-full bg-green-600 text-white shadow-lg shadow-green-900/40 transition active:scale-95 disabled:cursor-not-allowed disabled:bg-neutral-700 disabled:text-neutral-500 disabled:shadow-none"
+          className="btn-press flex h-14 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg shadow-emerald-900/50 hover:bg-emerald-500 disabled:cursor-not-allowed disabled:bg-neutral-800 disabled:text-neutral-600 disabled:shadow-none"
+          aria-label="Call"
         >
           <CallIcon />
         </button>
@@ -56,7 +59,8 @@ export function Keypad({ onKey, onCall, onHangup, callEnabled, callActive }: Key
           type="button"
           onClick={onHangup}
           disabled={!callActive}
-          className="flex h-14 items-center justify-center rounded-full bg-red-600 text-white shadow-lg shadow-red-900/40 transition active:scale-95 disabled:cursor-not-allowed disabled:bg-neutral-700 disabled:text-neutral-500 disabled:shadow-none"
+          className="btn-press flex h-14 items-center justify-center rounded-full bg-red-600 text-white shadow-lg shadow-red-900/50 hover:bg-red-500 disabled:cursor-not-allowed disabled:bg-neutral-800 disabled:text-neutral-600 disabled:shadow-none"
+          aria-label="Hang up"
         >
           <HangupIcon />
         </button>

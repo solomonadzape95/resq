@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import clsx from "clsx";
 import { api } from "@/lib/api";
+import { Badge } from "@/components/ui/Badge";
 
 const SKILLS = [
   "doctor",
@@ -54,90 +57,144 @@ export default function RegisterResponderPage() {
 
   if (done) {
     return (
-      <main className="mx-auto max-w-md p-8 text-center">
-        <h1 className="text-2xl font-bold">✅ Registered</h1>
-        <p className="mt-2 text-neutral-400">
-          You'll start receiving alerts once verified. For the demo, you're
+      <main className="mx-auto max-w-md px-6 py-16 text-center">
+        <span className="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/15 text-3xl ring-1 ring-emerald-400/40">
+          ✓
+        </span>
+        <h1 className="text-2xl font-bold tracking-tight">You&apos;re registered.</h1>
+        <p className="mt-2 text-sm leading-relaxed text-neutral-400">
+          You&apos;ll start receiving alerts once verified. For the demo, you&apos;re
           auto-verified.
         </p>
-        <a
+        <Link
           href="/dashboard"
-          className="mt-6 inline-block rounded-md bg-resq-red px-4 py-2 text-white"
+          className="btn-press mt-8 inline-flex rounded-xl bg-resq-red px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-white shadow-lg shadow-resq-red/20 hover:bg-red-700"
         >
-          Go to dashboard
-        </a>
+          Go to dashboard →
+        </Link>
       </main>
     );
   }
 
   return (
-    <main className="mx-auto max-w-md p-8">
-      <h1 className="text-2xl font-bold">Register as a ResQ responder</h1>
-      <p className="mt-1 text-sm text-neutral-400">
-        Trained volunteers — doctors, nurses, paramedics, fire wardens, security —
-        receive nearby emergency alerts and respond before official agencies arrive.
+    <main className="mx-auto max-w-lg px-6 py-12">
+      <header className="mb-8 flex items-center justify-between">
+        <Link href="/" className="btn-press flex items-center gap-2">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-resq-red text-sm shadow-md shadow-resq-red/30">
+            🚨
+          </span>
+          <span className="text-base font-bold tracking-tight">ResQ</span>
+        </Link>
+        <Badge tone="red" size="sm">
+          Responder signup
+        </Badge>
+      </header>
+
+      <h1 className="text-3xl font-bold leading-tight tracking-tight">
+        Register as a ResQ responder.
+      </h1>
+      <p className="mt-2 text-sm leading-relaxed text-neutral-400">
+        Trained volunteers — doctors, nurses, paramedics, fire wardens, security — receive
+        nearby emergency alerts and respond before official agencies arrive.
       </p>
 
-      <form onSubmit={submit} className="mt-6 space-y-4">
-        <div>
-          <label className="text-xs uppercase tracking-wider text-neutral-500">Name</label>
+      <form onSubmit={submit} className="mt-8 space-y-5">
+        <Field label="Name">
           <input
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="mt-1 w-full rounded-md border border-neutral-800 bg-neutral-900 px-3 py-2"
+            className={INPUT_CLASS}
+            placeholder="Dr. Amara Okeke"
           />
-        </div>
-        <div>
-          <label className="text-xs uppercase tracking-wider text-neutral-500">Phone (+234…)</label>
+        </Field>
+
+        <Field label="Phone (+234…)">
           <input
             required
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder="+2348012345678"
-            className="mt-1 w-full rounded-md border border-neutral-800 bg-neutral-900 px-3 py-2 font-mono"
+            className={clsx(INPUT_CLASS, "font-mono tabular-nums")}
           />
-        </div>
-        <div>
-          <label className="text-xs uppercase tracking-wider text-neutral-500">Skills</label>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {SKILLS.map((s) => (
-              <button
-                type="button"
-                key={s}
-                onClick={() => toggleSkill(s)}
-                className={`rounded-md border px-3 py-1 text-sm ${
-                  skills.includes(s)
-                    ? "border-resq-red bg-resq-red/20 text-white"
-                    : "border-neutral-800 text-neutral-400"
-                }`}
-              >
-                {s.replace("_", " ")}
-              </button>
-            ))}
+        </Field>
+
+        <Field label="Skills">
+          <div className="flex flex-wrap gap-2">
+            {SKILLS.map((s) => {
+              const selected = skills.includes(s);
+              return (
+                <button
+                  type="button"
+                  key={s}
+                  onClick={() => toggleSkill(s)}
+                  className={clsx(
+                    "btn-press rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-wider transition-colors",
+                    selected
+                      ? "border-resq-red/50 bg-resq-red/15 text-red-100"
+                      : "border-neutral-800 bg-neutral-900/40 text-neutral-400 hover:border-neutral-700 hover:text-white",
+                  )}
+                >
+                  {s.replace(/_/g, " ")}
+                </button>
+              );
+            })}
           </div>
-        </div>
-        <div>
-          <label className="text-xs uppercase tracking-wider text-neutral-500">
-            Availability radius: {radius} km
-          </label>
+        </Field>
+
+        <Field
+          label={
+            <span className="flex items-center justify-between">
+              <span>Availability radius</span>
+              <span className="font-mono text-[11px] tabular-nums normal-case tracking-normal text-neutral-300">
+                {radius} km
+              </span>
+            </span>
+          }
+        >
           <input
             type="range"
             min={1}
             max={20}
             value={radius}
             onChange={(e) => setRadius(Number(e.target.value))}
-            className="mt-1 w-full"
+            className="w-full accent-resq-red"
           />
-        </div>
-        {error ? <p className="text-sm text-red-400">{error}</p> : null}
+        </Field>
+
+        {error ? (
+          <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+            {error}
+          </div>
+        ) : null}
+
         <button
           disabled={pending || !name || !phone || skills.length === 0}
-          className="w-full rounded-md bg-resq-red px-4 py-2.5 font-semibold text-white hover:bg-red-700 disabled:opacity-40"
+          className="btn-press w-full rounded-xl bg-resq-red px-4 py-3 text-[12px] font-semibold uppercase tracking-wider text-white shadow-lg shadow-resq-red/25 hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-neutral-800 disabled:text-neutral-500 disabled:shadow-none"
         >
           {pending ? "Submitting…" : "Register"}
         </button>
       </form>
     </main>
+  );
+}
+
+const INPUT_CLASS =
+  "w-full rounded-xl border border-neutral-800 bg-neutral-900/40 px-3.5 py-2.5 text-sm text-neutral-100 outline-none transition focus:border-resq-red/50 focus:bg-neutral-900/70 placeholder:text-neutral-600";
+
+function Field({
+  label,
+  children,
+}: {
+  label: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <label className="block">
+      <span className="block text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
+        {label}
+      </span>
+      <div className="mt-1.5">{children}</div>
+    </label>
   );
 }

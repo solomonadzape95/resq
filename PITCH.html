@@ -10,6 +10,10 @@
 <link rel="preload" as="image" href="begin-resq.png" />
 <link rel="preload" as="image" href="end-resq.png" />
 <link rel="preload" as="image" href="dashboard-map.png" />
+<link rel="preload" as="image" href="Calling-amico.png" />
+<link rel="preload" as="image" href="Firefighter-pana.png" />
+<link rel="preload" as="image" href="Grid design-bro.png" />
+<link rel="preload" as="image" href="Road sign-bro.png" />
 <style>
   /* ---- TOKENS ----------------------------------------------------------- */
   :root {
@@ -640,6 +644,442 @@
   }
   .footnote strong { color: var(--fg); }
 
+  /* ---- STAT STRIP (slide 1 + slide 2) ---------------------------------- */
+  .statstrip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    margin-top: 38px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--bg-card);
+  }
+  .stat {
+    padding: 22px 26px;
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .stat:last-child { border-right: 0; }
+  .stat .stat__num {
+    font-family: var(--mono);
+    font-size: clamp(38px, 3.6vw, 56px);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--red);
+    line-height: 1;
+  }
+  .stat .stat__label {
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--fg-mute);
+    font-weight: 700;
+  }
+  .stat .stat__caption {
+    font-size: 13.5px;
+    color: var(--fg-soft);
+    line-height: 1.45;
+    margin-top: 4px;
+  }
+  .stat.stat--orange .stat__num { color: var(--orange); }
+  .stat.stat--emerald .stat__num { color: var(--emerald); }
+  .stat.stat--blue .stat__num { color: var(--blue); }
+
+  /* ---- DIAL BADGE / VENUE STRIP (slide 1) ------------------------------ */
+  .dial-badge {
+    display: inline-flex; align-items: center; gap: 14px;
+    margin-top: 28px;
+    padding: 14px 22px;
+    border: 1px solid var(--red);
+    background: rgba(239, 59, 59, 0.08);
+    border-radius: 6px;
+    color: var(--fg);
+    font-family: var(--mono);
+    font-size: 17px;
+    letter-spacing: 0.06em;
+  }
+  .dial-badge .icon { width: 20px; height: 20px; color: var(--red-soft); }
+  .dial-badge strong { color: var(--red-soft); font-weight: 800; letter-spacing: 0.04em; }
+  .dial-badge .pulse {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--emerald);
+    box-shadow: 0 0 0 0 rgba(16,185,129,0.6);
+    animation: dialpulse 1.6s ease-out infinite;
+  }
+  @keyframes dialpulse {
+    0% { box-shadow: 0 0 0 0 rgba(16,185,129,0.55); }
+    70% { box-shadow: 0 0 0 10px rgba(16,185,129,0); }
+    100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+  }
+  .venue-strip {
+    position: absolute;
+    left: 7vw; right: 7vw;
+    bottom: 4.5vh;
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    color: var(--fg-mute);
+    text-transform: uppercase;
+    z-index: 1;
+  }
+  .venue-strip .pill {
+    border: 1px solid var(--border-2);
+    padding: 6px 12px;
+    border-radius: 999px;
+    color: var(--fg-soft);
+  }
+
+  /* ---- COMPARE TWO-COLUMN (slide 8 - white) ---------------------------- */
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+    margin-top: 28px;
+  }
+  .compare__col {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 28px 30px;
+    background: var(--bg-card);
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .compare__col .compare__eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--fg-mute);
+    font-weight: 700;
+  }
+  .compare__col h3 {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--fg);
+    letter-spacing: -0.015em;
+  }
+  .compare__col .compare__lead {
+    font-size: 15px;
+    color: var(--fg-soft);
+    line-height: 1.55;
+  }
+  .compare__col .compare__verdict {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--fg);
+    letter-spacing: -0.01em;
+  }
+  .compare__col.compare__col--resq {
+    border-color: var(--red);
+    background: rgba(239, 59, 59, 0.04);
+  }
+  .compare__col.compare__col--resq .compare__verdict { color: var(--red); }
+
+  .pillrow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 22px;
+  }
+  .pill-fact {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 10px 16px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg-card);
+    font-size: 13px;
+    color: var(--fg-soft);
+    letter-spacing: 0.04em;
+  }
+  .pill-fact .icon { width: 14px; height: 14px; color: var(--emerald); }
+  .pill-fact strong { color: var(--fg); font-weight: 700; }
+
+  /* ---- ROADMAP (white slide) ------------------------------------------- */
+  .roadmap {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+    margin-top: 28px;
+  }
+  .phase {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 26px 30px;
+    background: var(--bg-card);
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .phase__tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    color: var(--fg-mute);
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .phase h3 {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--fg);
+    letter-spacing: -0.018em;
+  }
+  .phase__lead {
+    font-size: 15px;
+    color: var(--fg-soft);
+    line-height: 1.5;
+  }
+  .phase ul {
+    list-style: none;
+    margin-top: 10px;
+    display: flex; flex-direction: column; gap: 9px;
+  }
+  .phase li {
+    display: flex; gap: 11px; align-items: flex-start;
+    color: var(--fg-soft);
+    font-size: 14.5px;
+    line-height: 1.45;
+  }
+  .phase li .icon { width: 17px; height: 17px; color: var(--emerald); flex-shrink: 0; margin-top: 2px; }
+  .phase--current { border-color: var(--red); background: rgba(239,59,59,0.04); }
+  .phase--current .phase__tag { color: var(--red-soft); }
+
+  .partner-strip {
+    margin-top: 22px;
+    padding: 14px 20px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-card);
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 16px;
+    font-size: 13px;
+    color: var(--fg-soft);
+    letter-spacing: 0.04em;
+  }
+  .partner-strip strong { color: var(--fg); font-weight: 700; }
+  .partner-strip .lbl {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--fg-mute);
+    font-weight: 700;
+  }
+
+  /* ---- IMAGE PLACEHOLDER -----------------------------------------------
+     Dashed-border slot the team can swap a real <img> into later. The
+     visible caption tells whoever is sourcing the photo what to put here. */
+  .imgslot {
+    position: relative;
+    background: #15151c;
+    border: 1.5px dashed var(--border-2);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 16px;
+    min-height: 0;
+  }
+  .imgslot > img.imgslot__photo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+  }
+  .imgslot__cap {
+    text-align: center;
+    max-width: 94%;
+    position: relative;
+    z-index: 2;
+  }
+  .imgslot__cap .tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--red-soft);
+    padding: 4px 11px;
+    border: 1px solid var(--border-2);
+    border-radius: 999px;
+    margin-bottom: 12px;
+  }
+  .imgslot__cap .desc {
+    font-size: 12.5px;
+    color: var(--fg-soft);
+    line-height: 1.45;
+    font-family: var(--sans);
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  /* ---- TITLE STAGE (slide 1) -------------------------------------------
+     Four illustrations scattered around the centred wordmark, each at a
+     different rotation so it reads "hand-placed" rather than grid-aligned.
+     Positions and rotations are hand-tuned; they look random but they're
+     deliberate enough that nothing overlaps the title block. */
+  .title-stage {
+    position: relative;
+    flex: 1;
+    margin-top: 6px;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .title-stage .title-center {
+    position: relative;
+    z-index: 5;
+    text-align: center;
+    padding: 0 20px;
+    max-width: 60%;
+  }
+  .title-stage .title-center h1.hero {
+    font-size: clamp(90px, 10vw, 170px);
+    line-height: 0.9;
+  }
+  .title-stage .title-center .tagline {
+    font-size: clamp(22px, 2vw, 32px);
+    margin-top: 24px;
+  }
+  .title-stage .title-center .sub {
+    margin-top: 20px;
+    font-size: clamp(15px, 1.2vw, 19px);
+    text-align: center;
+    max-width: 34ch;
+    margin-left: auto; margin-right: auto;
+    color: var(--fg-soft);
+    line-height: 1.5;
+  }
+  .title-stage .floater {
+    position: absolute;
+    z-index: 1;
+    pointer-events: none;
+  }
+  .title-stage .floater img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  /* Each floater gets its own corner + rotation. Tweaked so the floaters
+     hug the page edges and leave a generous tunnel for the wordmark. */
+  .title-stage .floater--caller     { top: 2%;   left: -1%;  width: 28%; transform: rotate(-9deg); }
+  .title-stage .floater--responder  { top: 4%;   right: 0%;  width: 28%; transform: rotate(7deg); }
+  .title-stage .floater--coordinator{ bottom: 1%; left: 1%;  width: 28%; transform: rotate(5deg); }
+  .title-stage .floater--community  { bottom: 0%; right: -1%; width: 30%; transform: rotate(-6deg); }
+
+  /* ---- ACCENT SLOT (corner illustration placeholder) ------------------
+     Small dashed-border placeholder positioned absolute in the slide's
+     corner area (NOT inside .body, so it sits behind the live content
+     thanks to z-index 0 < body's z-index 1). Where the body content
+     doesn't reach, the accent shows through; where it does, the card
+     backgrounds cover it cleanly. To swap a placeholder for a real image,
+     replace the inner .tag + .desc divs with:
+        <img class="accent-slot__photo" src="..." alt="..." /> */
+  .accent-slot {
+    position: absolute;
+    z-index: 0;
+    pointer-events: none;
+    border: 1.5px dashed var(--border-2);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.025);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    overflow: hidden;
+  }
+  .accent-slot .tag {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--red-soft);
+    padding: 3px 9px;
+    border: 1px solid var(--border-2);
+    border-radius: 999px;
+    margin-bottom: 10px;
+  }
+  .accent-slot .desc {
+    font-size: 11.5px;
+    color: var(--fg-soft);
+    line-height: 1.45;
+    font-family: var(--sans);
+    letter-spacing: 0;
+    text-transform: none;
+    max-width: 94%;
+  }
+  .accent-slot img.accent-slot__photo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  /* ---- LIGHT-THEMED SLIDE VARIANT --------------------------------------
+     A white-paper aesthetic for the GovTech-comparison and roadmap
+     slides — gives the deck visual rhythm and reads as more formal /
+     "official" against the dark storytelling slides. Token swaps only;
+     no component changes. */
+  .slide--light {
+    --bg:        #f7f7fa;
+    --bg-soft:   #ffffff;
+    --bg-card:   #ffffff;
+    --bg-elev:   #ffffff;
+    --border:    #d8d8e0;
+    --border-2:  #b8b8c4;
+    --fg:        #0a0a0b;
+    --fg-soft:   #2c2c33;
+    --fg-mute:   #6a6a75;
+    background: #f7f7fa;
+    color: #0a0a0b;
+  }
+  .slide--light .slide__watermark {
+    color: rgba(239, 59, 59, 0.07);
+  }
+  .slide--light .head .brand { color: var(--red); }
+  .slide--light .head .num { color: var(--fg-mute); }
+  .slide--light .head { color: var(--fg-mute); }
+  .slide--light .eyebrow { color: var(--red); }
+  .slide--light .eyebrow::before { background: var(--red); }
+  .slide--light .sub { color: var(--fg-soft); }
+  .slide--light .sub.lead { color: var(--fg); }
+  .slide--light h2 { color: var(--fg); }
+  .slide--light .card { background: var(--bg-card); border-color: var(--border); }
+  .slide--light .card h3 { color: var(--fg); }
+  .slide--light .card p { color: var(--fg-mute); }
+  .slide--light .compare__col { background: #ffffff; border-color: var(--border); }
+  .slide--light .compare__col .compare__lead { color: var(--fg-mute); }
+  .slide--light .compare__col.compare__col--resq { background: rgba(239,59,59,0.05); }
+  .slide--light .pill-fact { background: #ffffff; border-color: var(--border); color: var(--fg-soft); }
+  .slide--light .phase { background: #ffffff; border-color: var(--border); }
+  .slide--light .phase__lead { color: var(--fg-mute); }
+  .slide--light .phase li { color: var(--fg-soft); }
+  .slide--light .partner-strip { background: #ffffff; border-color: var(--border); }
+  .slide--light .partner-strip .lbl { color: var(--fg-mute); }
+  .slide--light .imgslot { background: #ececf1; border-color: #c4c4cc; }
+  .slide--light .imgslot__cap .tag { color: var(--red); border-color: #c4c4cc; }
+  .slide--light .imgslot__cap .desc { color: var(--fg-mute); }
+  .slide--light .statstrip { background: #ffffff; border-color: var(--border); }
+  .slide--light .stat { border-right-color: var(--border); }
+  .slide--light .stat .stat__label { color: var(--fg-mute); }
+  .slide--light .stat .stat__caption { color: var(--fg-soft); }
+  .slide--light .sdg { background: #ffffff; border-color: var(--border); }
+  .slide--light .sdg .num { color: var(--fg-mute); }
+  .slide--light .sdg h4 { color: var(--fg); }
+  .slide--light .sdg p { color: var(--fg-mute); }
+  .slide--light .sdg p strong { color: var(--fg); }
+  .slide--light .accent-slot { background: rgba(0,0,0,0.025); border-color: #c4c4cc; }
+  .slide--light .accent-slot .tag { color: var(--red); border-color: #c4c4cc; }
+  .slide--light .accent-slot .desc { color: var(--fg-mute); }
+
   /* ---- CLOSING SLIDE ---------------------------------------------------- */
   .closing { align-items: center; justify-content: center; text-align: center; }
   .closing h1.hero {
@@ -892,6 +1332,78 @@
     /* --- Closing slide (12) --- */
     .closing h1.hero { font-size: 200px !important; }
     .closing .tagline { font-size: 36px !important; margin-top: 22px !important; }
+
+    /* --- White-themed slides keep their light background in print.
+       Default `.slide` rule above forces `background-color: var(--bg) !important`,
+       which on .slide--light resolves to #f7f7fa thanks to the token override.
+       But Chrome's print engine resolves the var on .slide before the
+       .slide--light cascade can update it, so re-assert with !important. --- */
+    .slide.slide--light {
+      background-color: #f7f7fa !important;
+      color: #0a0a0b !important;
+    }
+
+    /* --- Stat strip (slide 1 + slide 2) --- */
+    .statstrip { margin-top: 24px !important; }
+    .stat { padding: 16px 20px !important; gap: 4px !important; }
+    .stat .stat__num { font-size: 38px !important; }
+    .stat .stat__label { font-size: 10px !important; letter-spacing: 0.22em !important; }
+    .stat .stat__caption { font-size: 12.5px !important; line-height: 1.4 !important; margin-top: 2px !important; }
+
+    /* --- Dial badge / venue strip (slide 1) --- */
+    .dial-badge { margin-top: 20px !important; padding: 11px 18px !important; font-size: 15px !important; gap: 12px !important; }
+    .dial-badge .icon { width: 17px !important; height: 17px !important; }
+    .venue-strip { font-size: 10px !important; bottom: 28px !important; }
+    .venue-strip .pill { padding: 5px 10px !important; }
+
+    /* --- Compare two-column (slide 8) --- */
+    .compare { margin-top: 20px !important; gap: 16px !important; }
+    .compare__col { padding: 20px 22px !important; gap: 10px !important; }
+    .compare__col h3 { font-size: 18px !important; }
+    .compare__col .compare__lead { font-size: 13px !important; line-height: 1.45 !important; }
+    .compare__col .compare__verdict { font-size: 15px !important; padding-top: 11px !important; }
+    .compare__col .compare__eyebrow { font-size: 10px !important; }
+    .pillrow { margin-top: 16px !important; gap: 8px !important; }
+    .pill-fact { padding: 7px 12px !important; font-size: 11.5px !important; gap: 8px !important; }
+    .pill-fact .icon { width: 12px !important; height: 12px !important; }
+
+    /* --- Roadmap (replaces built/pending slide) --- */
+    .roadmap { margin-top: 20px !important; gap: 16px !important; }
+    .phase { padding: 18px 22px !important; gap: 8px !important; }
+    .phase h3 { font-size: 20px !important; }
+    .phase__tag { font-size: 10px !important; }
+    .phase__lead { font-size: 13px !important; line-height: 1.45 !important; }
+    .phase ul { margin-top: 6px !important; gap: 6px !important; }
+    .phase li { font-size: 12.5px !important; line-height: 1.42 !important; gap: 9px !important; }
+    .phase li .icon { width: 15px !important; height: 15px !important; }
+    .partner-strip { margin-top: 16px !important; padding: 10px 16px !important; font-size: 12px !important; }
+    .partner-strip .lbl { font-size: 9.5px !important; }
+
+    /* --- Title stage (slide 1) --- */
+    .title-stage { margin-top: 4px !important; }
+    .title-stage .title-center h1.hero { font-size: 152px !important; }
+    .title-stage .title-center .tagline { font-size: 26px !important; margin-top: 20px !important; }
+    .title-stage .title-center .sub {
+      font-size: 16px !important;
+      margin-top: 16px !important;
+      line-height: 1.45 !important;
+    }
+    /* Floater rotations + sizes hold their screen values in print — only
+       the rendered px size needs adjusting since the slide is 1280×720. */
+    .title-stage .floater--caller     { width: 300px !important; }
+    .title-stage .floater--responder  { width: 290px !important; }
+    .title-stage .floater--coordinator{ width: 300px !important; }
+    .title-stage .floater--community  { width: 310px !important; }
+
+    /* --- Image placeholders (still used as fallback if no image set) --- */
+    .imgslot { padding: 12px !important; }
+    .imgslot__cap .tag { font-size: 9px !important; padding: 3px 9px !important; margin-bottom: 8px !important; }
+    .imgslot__cap .desc { font-size: 11.5px !important; line-height: 1.4 !important; }
+
+    /* --- Corner accent slots (slides 4, 5, 6, 10) --- */
+    .accent-slot { padding: 10px !important; }
+    .accent-slot .tag { font-size: 8.5px !important; padding: 2px 8px !important; margin-bottom: 7px !important; }
+    .accent-slot .desc { font-size: 10.5px !important; line-height: 1.4 !important; }
   }
 </style>
 </head>
@@ -1046,28 +1558,58 @@
     <img class="slide__art" src="begin-resq.png" alt="ResQ" />
   </section>
 
-  <!-- ===== SLIDE 2 - TITLE ===== -->
+  <!-- ===== SLIDE 1 - TITLE PAGE =====
+       Four illustrations float around the wordmark at varied rotations —
+       caller (top-left), responder (top-right), coordinator (bottom-left),
+       community (bottom-right). Each rotated a different way so the
+       composition reads as hand-placed rather than grid-aligned.
+       Illustrations from Storyset, kept local (gitignored). -->
   <section class="slide" data-slide="1">
     <div class="slide__watermark">01</div>
     <header class="head">
       <div class="brand"><svg class="icon"><use href="#i-siren"/></svg> ResQ</div>
       <div class="num">01 / 12</div>
     </header>
-    <div class="body" style="justify-content: center;">
-      <div class="eyebrow">Public Emergency Infrastructure</div>
-      <h1 class="hero"><span class="res">Res</span><span class="qmark">Q.</span></h1>
-      <p class="tagline">Every second counts. <strong>Any phone. Any network.</strong></p>
-      <p class="sub" style="margin-top: 40px;">
-        The dispatch interface 112 can run on. One number connects any Nigerian, on any
-        phone, to the nearest trained responder in their neighbourhood. A government
-        coordinator watches the whole rescue happen on a live map.
-      </p>
-      <div class="notes">Speaker A · 25s. Plant the tagline. Make clear: not replacing 112, giving it modern rails.</div>
+    <div class="body">
+      <div class="title-stage">
+        <div class="floater floater--caller">
+          <img src="Calling-amico.png" alt="The caller" />
+        </div>
+        <div class="floater floater--responder">
+          <img src="Firefighter-pana.png" alt="The responder" />
+        </div>
+        <div class="floater floater--coordinator">
+          <img src="Grid design-bro.png" alt="The coordinator" />
+        </div>
+        <div class="floater floater--community">
+          <img src="Road sign-bro.png" alt="The community" />
+        </div>
+        <div class="title-center">
+          <h1 class="hero"><span class="res">Res</span><span class="qmark">Q.</span></h1>
+          <p class="tagline">Every second counts.<br/><strong>Any phone. Any network.</strong></p>
+          <p class="sub">
+            The dispatch interface 112 can run on. One number, every Nigerian,
+            the nearest trained responder — on a live government map.
+          </p>
+        </div>
+      </div>
+      <div class="notes">Speaker A · 25s. The four floating illustrations carry the three actors + a sense of place; the wordmark anchors the centre.</div>
     </div>
   </section>
 
-  <!-- ===== SLIDE 2 - THE PROBLEM ===== -->
-  <section class="slide" data-slide="2">
+  <!-- ===== SLIDE 2 - THE PROBLEM (WHITE) =====
+       White background carries the "report" framing. The three big
+       numbers all have primary sources:
+         · Apr 2026  — NEC 157th meeting officially adopting 112
+                       (Premium Times, Channels TV, State House
+                       press release, TVC News).
+         · 41 min    — Lagos State Ambulance Service performance
+                       evaluation (Eur. J. Trauma & Emergency Surgery,
+                       2020).
+         · 53%       — Same LASAMBUS study, share of RTA calls left
+                       unaddressed (n=1,352 intervention forms, 2017–18).
+       Three failure-mode cards explain *why* the numbers look like that. -->
+  <section class="slide slide--light" data-slide="2">
     <div class="slide__watermark">02</div>
     <header class="head">
       <div class="brand"><svg class="icon"><use href="#i-siren"/></svg> ResQ</div>
@@ -1075,8 +1617,28 @@
     </header>
     <div class="body">
       <div class="eyebrow">The Problem</div>
-      <h2>112 has the mandate. It needs the <span class="hl">rails</span>.</h2>
-      <p class="sub">Three gaps between the line a citizen dials and the help actually arriving.</p>
+      <h2>112 just became national. The <span class="hl">dispatch layer</span> behind it has not.</h2>
+      <p class="sub">In April 2026 the National Economic Council adopted 112 as Nigeria's unified emergency number. The decision is made. The software that turns those calls into help on the ground is what's missing.</p>
+      <div class="statstrip">
+        <div class="stat">
+          <div class="stat__num">Apr 2026</div>
+          <div class="stat__label">112 Adopted Nationally</div>
+          <div class="stat__caption">NEC 157th session, chaired by VP Shettima, formally adopts 112 as Nigeria's single emergency hotline. Multi-agency rollout led by NCC + Office of the VP.</div>
+        </div>
+        <div class="stat stat--orange">
+          <div class="stat__num">41 min</div>
+          <div class="stat__label">Average Response · Lagos</div>
+          <div class="stat__caption">Mean Lagos ambulance response time — over 4× the 10-minute global urban benchmark. Long after survivable emergencies turn fatal.</div>
+        </div>
+        <div class="stat stat--emerald">
+          <div class="stat__num">53%</div>
+          <div class="stat__label">RTA Calls Unaddressed</div>
+          <div class="stat__caption">Share of Lagos road-traffic-accident calls the state ambulance service did not address — 1,352 intervention forms reviewed (2017–2018).</div>
+        </div>
+      </div>
+      <p style="margin-top: 16px; font-size: 12.5px; color: var(--fg-mute); line-height: 1.5; font-family: var(--mono); letter-spacing: 0.04em;">
+        Sources: NEC 157th Meeting press release (Apr 2026) · <em>Lagos State Ambulance Service: a performance evaluation</em>, European Journal of Trauma &amp; Emergency Surgery (2020).
+      </p>
       <div class="cards cols-3">
         <article class="card">
           <div class="card__head">
@@ -1394,8 +1956,13 @@
     </div>
   </section>
 
-  <!-- ===== SLIDE 8 - WHY THIS IS GOVTECH ===== -->
-  <section class="slide" data-slide="8">
+  <!-- ===== SLIDE 8 - GOVTECH (WHITE) =====
+       Breaks the dark-slab rhythm — this is the formal "why this is govtech"
+       slide and uses a white-paper aesthetic on purpose. Frames ResQ against
+       existing Nigerian govtech (Tracka / Govspend / Uzabe) and lands the
+       memorable line: "They watch government work. We help government work."
+       Four feature pills below carry the public-infra anchors. -->
+  <section class="slide slide--light" data-slide="8">
     <div class="slide__watermark">08</div>
     <header class="head">
       <div class="brand"><svg class="icon"><use href="#i-siren"/></svg> ResQ</div>
@@ -1403,47 +1970,36 @@
     </header>
     <div class="body">
       <div class="eyebrow">Positioning</div>
-      <h2>This is not a startup pitch. It is <span class="hl">public infrastructure</span>.</h2>
-      <div class="cards cols-2">
-        <article class="card">
-          <div class="card__head">
-            <span class="card__num">01</span>
-            <span class="card__icon"><svg class="icon"><use href="#i-accessibility"/></svg></span>
-          </div>
-          <h3>Universal access</h3>
-          <p>Works on the cheapest phone in the country. No data, no app store, no digital divide.</p>
-        </article>
-        <article class="card tone-emerald">
-          <div class="card__head">
-            <span class="card__num">02</span>
-            <span class="card__icon"><svg class="icon"><use href="#i-file-text"/></svg></span>
-          </div>
-          <h3>Accountability built in</h3>
-          <p>Every action audited by default. Response times become a metric, not a press release.</p>
-        </article>
-        <article class="card tone-blue">
-          <div class="card__head">
-            <span class="card__num">03</span>
-            <span class="card__icon"><svg class="icon"><use href="#i-layers"/></svg></span>
-          </div>
-          <h3>LGA-scalable</h3>
-          <p>Same software for all 774 Local Government Areas. One configuration change per state.</p>
-        </article>
-        <article class="card tone-orange">
-          <div class="card__head">
-            <span class="card__num">04</span>
-            <span class="card__icon"><svg class="icon"><use href="#i-handshake"/></svg></span>
-          </div>
-          <h3>Plugs into 112, doesn't replace it</h3>
-          <p>An open dispatch interface federal 112 and state SEMAs adopt. Same emergency number citizens already know, working a hundred times faster behind the scenes.</p>
-        </article>
+      <h2>GovTech. <span class="hl">Not just tech.</span></h2>
+      <p class="sub">Where Nigeria's existing govtech stops, ResQ begins — built inside regulated emergency infrastructure, not alongside it.</p>
+      <div class="compare">
+        <div class="compare__col">
+          <div class="compare__eyebrow">Other Nigerian GovTech</div>
+          <h3>Tracka · Govspend · Uzabe</h3>
+          <p class="compare__lead">Focused on transparency and accountability — citizens watching budgets, projects, and votes. Critical work. Different surface.</p>
+          <div class="compare__verdict">They watch government work.</div>
+        </div>
+        <div class="compare__col compare__col--resq">
+          <div class="compare__eyebrow">ResQ</div>
+          <h3>Emergency Services Layer</h3>
+          <p class="compare__lead">Built inside regulated emergency infrastructure — NCC-licensed USSD, SEMA-facing dashboards, NEMA-ready data. The first govtech that runs the response itself.</p>
+          <div class="compare__verdict">We help government work.</div>
+        </div>
       </div>
-      <div class="notes">Speaker B · 45s. Land the line: this is the layer 112 runs on. Keywords: public infrastructure, audit by default, 774 LGAs, 112-compatible.</div>
+      <div class="pillrow">
+        <span class="pill-fact"><svg class="icon"><use href="#i-check"/></svg> <strong>Verified responders</strong> — credential check + ongoing rating</span>
+        <span class="pill-fact"><svg class="icon"><use href="#i-check"/></svg> <strong>NDPR-compliant</strong> — consent on call, purged after closure</span>
+        <span class="pill-fact"><svg class="icon"><use href="#i-check"/></svg> <strong>Always additive</strong> — existing 112 / NEMA / FRSC still notified</span>
+        <span class="pill-fact"><svg class="icon"><use href="#i-check"/></svg> <strong>Under ₦50 / incident</strong> — USSD + transcription + AI extraction</span>
+      </div>
+      <div class="notes">Speaker B · 50s. Land the line "They watch government work. We help government work." Slow it down.</div>
     </div>
   </section>
 
-  <!-- ===== SLIDE 9 - SDG ALIGNMENT ===== -->
-  <section class="slide" data-slide="9">
+  <!-- ===== SLIDE 9 - SDG ALIGNMENT (WHITE) =====
+       UN content reads cleaner on white — slide carries the same six
+       SDGs and the new Target numbers + "We will report" metric promises. -->
+  <section class="slide slide--light" data-slide="9">
     <div class="slide__watermark">09</div>
     <header class="head">
       <div class="brand"><svg class="icon"><use href="#i-siren"/></svg> ResQ</div>
@@ -1456,27 +2012,51 @@
       <div class="sdgs">
         <div class="sdg sdg-3">
           <div class="icon-box"><svg class="icon"><use href="#i-heart-pulse"/></svg></div>
-          <div><div class="num">SDG 03</div><h4>Good Health &amp; Well-Being</h4><p>Cutting response time directly reduces avoidable deaths from cardiac arrest, road accidents, fires, and obstetric emergencies.</p></div>
+          <div>
+            <div class="num">SDG 03 · Target 3.6, 3.d</div>
+            <h4>Good Health &amp; Well-Being</h4>
+            <p>Cutting response time reduces deaths from cardiac arrest, road accidents, fires, and obstetric emergencies. <strong>We will report:</strong> minutes saved between incident and trained-responder contact.</p>
+          </div>
         </div>
         <div class="sdg sdg-9">
           <div class="icon-box"><svg class="icon"><use href="#i-wrench"/></svg></div>
-          <div><div class="num">SDG 09</div><h4>Industry &amp; Infrastructure</h4><p>Resilient public emergency rails built on telco infrastructure that already exists. No new hardware required.</p></div>
+          <div>
+            <div class="num">SDG 09 · Target 9.c</div>
+            <h4>Industry &amp; Infrastructure</h4>
+            <p>Public emergency rails built on existing telco infrastructure. No new hardware. <strong>We will report:</strong> network reach and uptime per LGA.</p>
+          </div>
         </div>
         <div class="sdg sdg-10">
           <div class="icon-box"><svg class="icon"><use href="#i-trend-down"/></svg></div>
-          <div><div class="num">SDG 10</div><h4>Reduced Inequalities</h4><p>One hotline, any phone, any network. The poorest Nigerian gets the same emergency line as the wealthiest.</p></div>
+          <div>
+            <div class="num">SDG 10 · Target 10.2</div>
+            <h4>Reduced Inequalities</h4>
+            <p>One hotline, any phone, any network. The poorest Nigerian gets the same emergency line as the wealthiest. <strong>We will report:</strong> calls by device class and income band.</p>
+          </div>
         </div>
         <div class="sdg sdg-11">
           <div class="icon-box"><svg class="icon"><use href="#i-building"/></svg></div>
-          <div><div class="num">SDG 11</div><h4>Sustainable Cities &amp; Communities</h4><p>Communities become resilient when local responders are findable. Disaster response moves from hours to minutes.</p></div>
+          <div>
+            <div class="num">SDG 11 · Target 11.5, 11.b</div>
+            <h4>Sustainable Cities &amp; Communities</h4>
+            <p>Integrated disaster response moves communities from hours to minutes. <strong>We will report:</strong> incidents resolved per LGA per month, with coverage maps.</p>
+          </div>
         </div>
         <div class="sdg sdg-16">
           <div class="icon-box"><svg class="icon"><use href="#i-scale"/></svg></div>
-          <div><div class="num">SDG 16</div><h4>Peace, Justice &amp; Strong Institutions</h4><p>An immutable audit trail makes government emergency response measurable, public, and enforceable.</p></div>
+          <div>
+            <div class="num">SDG 16 · Target 16.6</div>
+            <h4>Peace, Justice &amp; Strong Institutions</h4>
+            <p>An immutable audit trail makes government emergency response measurable, public, and enforceable. <strong>We will report:</strong> response-time data delivered to government planners.</p>
+          </div>
         </div>
         <div class="sdg sdg-17">
           <div class="icon-box"><svg class="icon"><use href="#i-handshake"/></svg></div>
-          <div><div class="num">SDG 17</div><h4>Partnerships for the Goals</h4><p>A public-private model. Telco aggregators, state SEMAs, community responders, AI partners. All on one rail.</p></div>
+          <div>
+            <div class="num">SDG 17 · Target 17.17</div>
+            <h4>Partnerships for the Goals</h4>
+            <p>A public-private model. Telco aggregators, state SEMAs, community responders, AI partners. <strong>We will report:</strong> active partnerships per state.</p>
+          </div>
         </div>
       </div>
       <div class="notes">Speaker B · 35s. Hit the headline and let the cards do the work.</div>
@@ -1526,47 +2106,55 @@
     </div>
   </section>
 
-  <!-- ===== SLIDE 11 - BUILT vs PENDING ===== -->
-  <section class="slide" data-slide="11">
+  <!-- ===== SLIDE 11 - ROADMAP (WHITE) =====
+       Replaces the older "built vs pending" two-column with a forward-looking
+       Phase 1 / Phase 2 roadmap. White background carries the public-paper
+       feel from slide 8 — the deck now visually splits "story" (dark) from
+       "plan / institutional commitments" (white). The ESEMA partner strip
+       anchors the pilot to a named agency, not a hypothetical. -->
+  <section class="slide slide--light" data-slide="11">
     <div class="slide__watermark">11</div>
     <header class="head">
       <div class="brand"><svg class="icon"><use href="#i-siren"/></svg> ResQ</div>
       <div class="num">11 / 12</div>
     </header>
     <div class="body">
-      <div class="eyebrow">Status</div>
-      <h2>The software is shipped. <span class="hl">The licensing is the work ahead.</span></h2>
-      <div class="cols">
-        <div class="col tone-emerald">
-          <div class="col__head">
-            <div class="col__title"><svg class="icon"><use href="#i-check-square"/></svg> Built and running</div>
-            <span class="col__num">SOFTWARE</span>
-          </div>
+      <div class="eyebrow">Roadmap</div>
+      <h2>Built for Nigeria. <span class="hl">Ready for Africa.</span></h2>
+      <p class="sub">A working demo today. A pathway to national infrastructure tomorrow.</p>
+      <div class="roadmap">
+        <div class="phase phase--current">
+          <div class="phase__tag">Phase 1 · Now</div>
+          <h3>Competition MVP</h3>
+          <p class="phase__lead">End-to-end demo on real telco infrastructure (sandbox).</p>
           <ul>
-            <li><svg class="icon"><use href="#i-check"/></svg><span>AI call intake (transcript and silent recording pipeline)</span></li>
-            <li><svg class="icon"><use href="#i-check"/></svg><span>Triage and location extraction from natural speech</span></li>
-            <li><svg class="icon"><use href="#i-check"/></svg><span>Skill and distance dispatcher with real-time push</span></li>
-            <li><svg class="icon"><use href="#i-check"/></svg><span>Coordinator dashboard with immutable audit trail</span></li>
-            <li><svg class="icon"><use href="#i-check"/></svg><span>Responder mobile view and live match lines</span></li>
-            <li><svg class="icon"><use href="#i-check"/></svg><span>USSD intake proven against the Africa's Talking sandbox</span></li>
+            <li><svg class="icon"><use href="#i-check"/></svg><span>USSD intake via Africa's Talking sandbox</span></li>
+            <li><svg class="icon"><use href="#i-check"/></svg><span>Live coordinator dashboard with immutable audit trail</span></li>
+            <li><svg class="icon"><use href="#i-check"/></svg><span>Responder mobile view (works on any Android Chrome)</span></li>
+            <li><svg class="icon"><use href="#i-check"/></svg><span>AI triage, transcription, and location extraction in English</span></li>
+            <li><svg class="icon"><use href="#i-check"/></svg><span>Skill + distance responder matching, real-time push</span></li>
+            <li><svg class="icon"><use href="#i-check"/></svg><span>Public site with responder registration</span></li>
           </ul>
         </div>
-        <div class="col">
-          <div class="col__head">
-            <div class="col__title"><svg class="icon"><use href="#i-rocket"/></svg> Pending partnerships and licensing</div>
-            <span class="col__num">REGULATORY</span>
-          </div>
+        <div class="phase">
+          <div class="phase__tag">Phase 2 · Next 12 months</div>
+          <h3>Enugu State Pilot</h3>
+          <p class="phase__lead">Move from sandbox to live pilot with ESEMA backing — then federal.</p>
           <ul>
-            <li><svg class="icon"><use href="#i-key"/></svg><span>Federal MOU to route 112 calls through ResQ</span></li>
-            <li><svg class="icon"><use href="#i-key"/></svg><span>NCC USSD shortcode allocation (auxiliary entry)</span></li>
-            <li><svg class="icon"><use href="#i-signal"/></svg><span>MTN and Airtel cell-tower triangulation MOU</span></li>
-            <li><svg class="icon"><use href="#i-building"/></svg><span>State SEMA integrations and rollout</span></li>
-            <li><svg class="icon"><use href="#i-smartphone"/></svg><span>Native iOS and Android apps</span></li>
-            <li><svg class="icon"><use href="#i-chart"/></svg><span>Public response-time analytics</span></li>
+            <li><svg class="icon"><use href="#i-key"/></svg><span>ESEMA partnership letter and pilot launch</span></li>
+            <li><svg class="icon"><use href="#i-signal"/></svg><span>MTN / Airtel cell-tower triangulation MOU</span></li>
+            <li><svg class="icon"><use href="#i-key"/></svg><span>Dedicated NCC shortcode (full licensing)</span></li>
+            <li><svg class="icon"><use href="#i-users"/></svg><span>Hausa, Yoruba, and Igbo voice transcription</span></li>
+            <li><svg class="icon"><use href="#i-smartphone"/></svg><span>Native iOS and Android caller app</span></li>
+            <li><svg class="icon"><use href="#i-building"/></svg><span>Multi-LGA coordinator role management · NEMA rollout</span></li>
           </ul>
         </div>
       </div>
-      <div class="notes">Speaker B · 25s. Be honest about what needs licensing.</div>
+      <div class="partner-strip">
+        <span><span class="lbl">First Pilot Partner ·</span> <strong>Enugu State Emergency Management Agency (ESEMA)</strong></span>
+        <span><span class="lbl">Coverage ·</span> <strong>Enugu State LGAs</strong></span>
+      </div>
+      <div class="notes">Speaker B · 35s. Phase 1 is built. Phase 2 is paperwork. ESEMA is the named first partner.</div>
     </div>
   </section>
 

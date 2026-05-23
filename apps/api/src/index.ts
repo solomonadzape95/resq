@@ -1,4 +1,5 @@
 import http from "node:http";
+import os from "node:os";
 import express from "express";
 import cors from "cors";
 import pinoHttp from "pino-http";
@@ -11,6 +12,7 @@ import { respondersRouter } from "./routes/responders.js";
 import { callsRouter } from "./routes/calls.js";
 import { authRouter } from "./routes/auth.js";
 import { voiceRouter } from "./routes/voice.js";
+import { adminRouter } from "./routes/admin.js";
 
 const app = express();
 
@@ -57,6 +59,7 @@ app.use("/responders", respondersRouter);
 app.use("/calls", callsRouter);
 app.use("/voice", voiceRouter);
 app.use("/auth", authRouter);
+app.use("/admin", adminRouter);
 
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   logger.error({ err }, "[api] unhandled");
@@ -66,7 +69,27 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
 const server = http.createServer(app);
 initSocket(server);
 
+// Express's default `listen(port)` binds to 0.0.0.0 — i.e. every network
+// interface. Useful for testing from another device on the same wifi.
+// Surface the LAN IP next to localhost so it's obvious which URL the
+// phone should point at (no need to run `ifconfig` separately).
+function localLanIp(): string | null {
+  const nets = os.networkInterfaces();
+  for (const name of Object.keys(nets)) {
+    for (const net of nets[name] ?? []) {
+      if (net.family === "IPv4" && !net.internal) return net.address;
+    }
+  }
+  return null;
+}
+
 server.listen(env.PORT, () => {
+  const lan = localLanIp();
   logger.info(`ResQ API listening on http://localhost:${env.PORT}`);
+  if (lan) {
+    logger.info(
+      `  ↳ on LAN: http://${lan}:${env.PORT} (point a phone on the same wifi here)`,
+    );
+  }
   logger.info(`USSD webhook → POST ${env.PUBLIC_BASE_URL}/ussd`);
 });

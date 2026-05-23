@@ -2,10 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
+import clsx from "clsx";
 import { api } from "@/lib/api";
 import { getSocket } from "@/lib/socket";
-import { TYPE_COLOR, TYPE_LABEL, timeAgo } from "@/lib/incidents";
+import {
+  SEVERITY_TONE,
+  STATUS_TONE,
+  TYPE_COLOR,
+  TYPE_LABEL,
+  timeAgo,
+} from "@/lib/incidents";
 import type { Incident } from "@resq/shared/types";
+import { Badge } from "@/components/ui/Badge";
+import { Card, CardLabel } from "@/components/ui/Card";
 
 type IncidentDetail = Incident & {
   responders: { id: string; status: string; etaMinutes: number | null }[];
@@ -16,19 +25,24 @@ interface TranscriptLine {
   timestamp: string;
 }
 
+const TYPE_EMOJI: Record<Incident["type"], string> = {
+  medical: "🩹",
+  fire: "🔥",
+  crime: "🚨",
+  accident: "🚗",
+};
+
+type MyStatus = "pending" | "accepted" | "declined" | "en_route" | "on_scene" | "resolved";
+
 export default function ResponderViewPage() {
   const params = useParams<{ id: string }>();
   const searchParams = useSearchParams();
-  // /r/<incident-id>?responder=<responder-id> — lets us POST status updates
-  // as a specific responder. Defaults to the first seeded responder for the demo.
   const responderId = searchParams?.get("responder") ?? null;
 
   const incidentId = params?.id;
   const [incident, setIncident] = useState<IncidentDetail | null>(null);
   const [transcript, setTranscript] = useState<TranscriptLine[]>([]);
-  const [myStatus, setMyStatus] = useState<
-    "pending" | "accepted" | "declined" | "en_route" | "on_scene" | "resolved"
-  >("pending");
+  const [myStatus, setMyStatus] = useState<MyStatus>("pending");
   const [posting, setPosting] = useState(false);
 
   useEffect(() => {
@@ -70,7 +84,6 @@ export default function ResponderViewPage() {
   ) {
     if (!incidentId) return;
     if (!responderId) {
-      // No responder context — fall back to local-only state (demo mode)
       setMyStatus(status);
       return;
     }
@@ -95,91 +108,123 @@ export default function ResponderViewPage() {
 
   if (!incident) {
     return (
-      <main className="flex min-h-screen items-center justify-center text-neutral-500">
+      <main className="flex min-h-screen items-center justify-center text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
         Loading incident…
       </main>
     );
   }
 
+  const typeColor = TYPE_COLOR[incident.type];
+
   return (
-    <main className="mx-auto min-h-screen max-w-md p-4">
-      <div className="rounded-xl border border-neutral-800 bg-neutral-950 p-5">
-        <div className="flex items-center gap-2">
+    <main className="mx-auto min-h-screen max-w-md space-y-3 p-4">
+      <Card padding="lg">
+        <header className="flex items-start gap-3">
           <span
-            className="h-3 w-3 rounded-full"
-            style={{ background: TYPE_COLOR[incident.type] }}
-          />
-          <span className="font-semibold uppercase">{TYPE_LABEL[incident.type]}</span>
-          <span className="ml-auto text-xs text-neutral-500">
-            {timeAgo(incident.createdAt)}
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-xl shadow-md"
+            style={{
+              background: typeColor,
+              boxShadow: "0 0 0 1px rgba(255,255,255,0.08)",
+            }}
+          >
+            <span style={{ filter: "saturate(1.2)" }}>{TYPE_EMOJI[incident.type]}</span>
           </span>
-        </div>
-        <h1 className="mt-2 text-xl font-bold">Emergency Alert</h1>
-        <p className="mt-1 text-sm text-neutral-400">
-          {incident.locationText ?? "Location pending — caller is being contacted"}
-        </p>
-        {incident.aiTriageScore != null ? (
-          <div className="mt-3 inline-block rounded bg-neutral-900 px-2 py-1 text-xs">
-            Triage {incident.aiTriageScore}/10 · {incident.aiSeverity}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5">
+              <h1 className="truncate text-lg font-bold text-white">
+                {TYPE_LABEL[incident.type]}
+              </h1>
+              <Badge tone={STATUS_TONE[incident.status]} size="sm">
+                {incident.status.replace("_", " ")}
+              </Badge>
+            </div>
+            <p className="mt-0.5 text-[11px] tabular-nums text-neutral-500">
+              {timeAgo(incident.createdAt)}
+            </p>
           </div>
-        ) : null}
+        </header>
+
+        <div className="mt-4 space-y-3">
+          <div>
+            <CardLabel>Location</CardLabel>
+            <p className="mt-1 text-sm leading-snug text-neutral-200">
+              {incident.locationText ?? "Pending — caller is being contacted."}
+            </p>
+          </div>
+
+          {incident.aiTriageScore != null || incident.aiSeverity ? (
+            <div className="flex flex-wrap items-center gap-1.5">
+              {incident.aiSeverity ? (
+                <Badge tone={SEVERITY_TONE[incident.aiSeverity]} size="sm">
+                  {incident.aiSeverity}
+                </Badge>
+              ) : null}
+              {incident.aiTriageScore != null ? (
+                <Badge size="sm">Triage {incident.aiTriageScore}/10</Badge>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+
         {!responderId ? (
-          <p className="mt-3 text-xs text-yellow-400">
-            Demo mode — no <code>?responder=&lt;id&gt;</code> in the URL, so
-            Accept/Decline won't persist. Append your responder ID to use as a
-            real responder.
-          </p>
+          <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-[11px] uppercase tracking-wider text-amber-200">
+            Demo mode — append ?responder=… to persist accept/decline.
+          </div>
         ) : null}
 
         {myStatus === "pending" ? (
-          <div className="mt-4 flex gap-2">
+          <div className="mt-4 grid grid-cols-2 gap-2">
             <button
               onClick={() => postStatus("accepted")}
               disabled={posting}
-              className="flex-1 rounded-md bg-resq-red px-4 py-3 text-base font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+              className="btn-press rounded-xl bg-resq-red px-4 py-3 text-[12px] font-semibold uppercase tracking-wider text-white shadow-lg shadow-resq-red/25 hover:bg-red-700 disabled:opacity-50"
             >
               {posting ? "…" : "Accept"}
             </button>
             <button
               onClick={() => postStatus("declined")}
               disabled={posting}
-              className="flex-1 rounded-md border border-neutral-800 px-4 py-3 text-base disabled:opacity-50"
+              className="btn-press rounded-xl border border-neutral-800 bg-neutral-900/60 px-4 py-3 text-[12px] font-semibold uppercase tracking-wider text-neutral-300 hover:border-neutral-700 hover:text-white disabled:opacity-50"
             >
               Decline
             </button>
           </div>
         ) : myStatus === "declined" ? (
-          <div className="mt-4 rounded-md bg-neutral-900 px-3 py-2 text-sm text-neutral-400">
+          <div className="mt-4 rounded-xl border border-neutral-800 bg-neutral-900/60 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
             You declined this incident.
           </div>
         ) : (
-          <>
-            <div className="mt-4 rounded-md bg-green-900/40 px-3 py-2 text-sm text-green-200">
-              ✓ Status: {myStatus.replace("_", " ")}
+          <div className="mt-4 space-y-2">
+            <Badge tone="emerald" size="md" dot>
+              {myStatus.replace("_", " ")}
+            </Badge>
+            <div className="grid grid-cols-3 gap-2">
+              {(["en_route", "on_scene", "resolved"] as const).map((s) => {
+                const active = myStatus === s;
+                return (
+                  <button
+                    key={s}
+                    onClick={() => postStatus(s)}
+                    disabled={posting || active}
+                    className={clsx(
+                      "btn-press rounded-xl px-2.5 py-2 text-[10px] font-semibold uppercase tracking-wider transition disabled:opacity-50",
+                      active
+                        ? "bg-emerald-600 text-white shadow-md shadow-emerald-900/30"
+                        : "border border-neutral-800 bg-neutral-900/60 text-neutral-300 hover:border-neutral-700 hover:text-white",
+                    )}
+                  >
+                    {s.replace("_", " ")}
+                  </button>
+                );
+              })}
             </div>
-            <div className="mt-2 flex gap-2 text-sm">
-              {(
-                ["en_route", "on_scene", "resolved"] as const
-              ).map((s) => (
-                <button
-                  key={s}
-                  onClick={() => postStatus(s)}
-                  disabled={posting || myStatus === s}
-                  className="flex-1 rounded-md border border-neutral-800 px-2 py-1.5 capitalize disabled:opacity-50"
-                >
-                  {s.replace("_", " ")}
-                </button>
-              ))}
-            </div>
-          </>
+          </div>
         )}
-      </div>
+      </Card>
 
-      <div className="mt-4 rounded-xl border border-neutral-800 bg-neutral-950 p-5">
-        <h2 className="text-xs uppercase tracking-wider text-neutral-500">
-          Live notes from caller
-        </h2>
-        <div className="mt-2 space-y-2 text-sm">
+      <Card padding="lg">
+        <CardLabel>Live notes from caller</CardLabel>
+        <div className="mt-2 space-y-2 rounded-xl border border-neutral-900 bg-black/30 p-3 text-sm">
           {(incident.transcriptFull ?? "")
             .split("\n")
             .filter(Boolean)
@@ -197,11 +242,11 @@ export default function ResponderViewPage() {
             <p className="text-neutral-600">Waiting for transcript updates…</p>
           ) : null}
         </div>
-      </div>
+      </Card>
 
-      <div className="mt-4 text-center text-xs text-neutral-600">
-        Mobile-responsive demo view. Production runs as a React Native app.
-      </div>
+      <p className="px-2 pt-1 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-600">
+        Mobile demo view. Production runs as a React Native app.
+      </p>
     </main>
   );
 }

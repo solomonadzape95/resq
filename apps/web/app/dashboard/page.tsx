@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import clsx from "clsx";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Incident, ResponderStatus } from "@resq/shared/types";
 import { api } from "@/lib/api";
@@ -10,13 +11,15 @@ import { IncidentList } from "@/components/incident/IncidentList";
 import { IncidentPanel } from "@/components/incident/IncidentPanel";
 import type { ResponderPin } from "@/components/map/IncidentMap";
 import { CITIES, findCity, isInCity, type CityBounds } from "@/lib/incidents";
+import { Badge } from "@/components/ui/Badge";
+import { Tabs } from "@/components/ui/Tabs";
+import { useMediaQuery } from "@/lib/useMediaQuery";
 
 const IncidentMap = dynamic(
   () => import("@/components/map/IncidentMap").then((m) => m.IncidentMap),
   { ssr: false },
 );
 
-// The /alerts endpoint nests assigned responders inside each incident row.
 interface IncidentResponderLink {
   responderId: string;
   status: string;
@@ -35,19 +38,34 @@ interface RawResponder {
 }
 
 const ACTIVE_LINK_STATUSES = new Set(["assigned", "accepted", "en_route", "on_scene"]);
-
 const CITY_STORAGE_KEY = "resq.coordinator.cityId";
+
+type ShowFilter = "all" | "open" | "critical";
 
 export default function DashboardPage() {
   const [incidents, setIncidents] = useState<IncidentWithRels[]>([]);
   const [responders, setResponders] = useState<RawResponder[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  // Tracks the most recent socket-pushed incident so the map can pan to it
+  // even when nothing's been clicked. Cleared on select so manual selection
+  // wins over auto-follow.
+  const [lastNewIncidentId, setLastNewIncidentId] = useState<string | null>(null);
   const [showResponders, setShowResponders] = useState(true);
   const [connected, setConnected] = useState(false);
-  // null = coordinator hasn't picked a city yet (gate shows).
-  // string = city.id selected. Persisted to localStorage so reloads keep it.
   const [cityId, setCityId] = useState<string | null>(null);
   const [cityLoaded, setCityLoaded] = useState(false);
+  const [query, setQuery] = useState("");
+  const [showFilter, setShowFilter] = useState<ShowFilter>("all");
+  // Below 1024px the sidebar collapses into a drawer that the user toggles
+  // explicitly. Closed by default on mobile so the map gets the screen.
+  const isMobile = useMediaQuery("(max-width: 1023px)");
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  // Selecting an incident on mobile should close the drawer so the
+  // bottom-sheet panel isn't competing with the list for screen space.
+  useEffect(() => {
+    if (isMobile && selectedId) setMobileSidebarOpen(false);
+  }, [selectedId, isMobile]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -61,15 +79,12 @@ export default function DashboardPage() {
   const pickCity = useCallback((id: string) => {
     setCityId(id);
     setSelectedId(null);
+    setLastNewIncidentId(null);
     if (typeof window !== "undefined") {
       window.localStorage.setItem(CITY_STORAGE_KEY, id);
     }
   }, []);
 
-  // Single function so we can refetch on mount, on socket reconnect, and on
-  // a periodic backstop. Merge semantics: rows from /alerts are authoritative
-  // for ids they cover, but any incident already in local state that the
-  // server didn't return (e.g. a fresh socket-pushed row mid-fetch) survives.
   const refetchIncidents = useCallback(async () => {
     try {
       const rows = await api<IncidentWithRels[]>("/alerts?active=true&limit=200");
@@ -87,10 +102,7 @@ export default function DashboardPage() {
       })) as IncidentWithRels[];
       setIncidents((prev) => {
         const fetchedIds = new Set(normalised.map((r) => r.id));
-        // Preserve incidents pushed via socket that the server didn't return
-        // yet (race when fetch is in flight while a new incident is created).
         const survivors = prev.filter((p) => !fetchedIds.has(p.id));
-        // Stable order: socket-only first (most recent), then server rows.
         return [...survivors, ...normalised];
       });
     } catch (e) {
@@ -109,9 +121,6 @@ export default function DashboardPage() {
       })
       .catch((e) => console.error("[dashboard] /responders failed", e));
 
-    // Periodic backstop: catch anything dropped by a flaky socket. Every
-    // 10s, re-merge against the server. Cheap (200 rows max) and means the
-    // sidebar never lies for more than that interval.
     const interval = window.setInterval(() => {
       if (mounted) void refetchIncidents();
     }, 10000);
@@ -128,8 +137,6 @@ export default function DashboardPage() {
     const onConnect = () => {
       setConnected(true);
       sock.emit("join:coordinator");
-      // After a reconnect, the server may have created or updated incidents
-      // we missed. Re-fetch to backfill before going back to live updates.
       void refetchIncidents();
     };
     sock.on("connect", onConnect);
@@ -142,6 +149,10 @@ export default function DashboardPage() {
         if (prev.some((p) => p.id === incident.id)) return prev;
         return [incident as IncidentWithRels, ...prev];
       });
+      // Camera follow: latch onto the most recent incident so the map flies
+      // to it. The IncidentMap effect runs only when this value changes —
+      // re-arriving the same id (from a re-render) is a no-op.
+      if (incident?.id) setLastNewIncidentId(incident.id as string);
     });
     sock.on("incident:updated", (patch) => {
       setIncidents((prev) =>
@@ -163,8 +174,6 @@ export default function DashboardPage() {
       );
     });
     sock.on("responder:accepted", (payload) => {
-      // When a responder accepts an incident, fold the linkage into the
-      // local incident row so the match line appears immediately.
       setIncidents((prev) =>
         prev.map((p) =>
           p.id === payload.incidentId
@@ -189,9 +198,6 @@ export default function DashboardPage() {
     };
   }, [refetchIncidents]);
 
-  // City filter: incidents and responders outside the selected city's
-  // bounding box are dropped before anything else sees them, so the list,
-  // map, tally, and match lines all see one consistent set of rows.
   const cityIncidents = useMemo(
     () => incidents.filter((i) => isInCity(i.locationLat, i.locationLng, city)),
     [incidents, city],
@@ -201,10 +207,44 @@ export default function DashboardPage() {
     [responders, city],
   );
 
+  // Search + show-filter only narrow the SIDEBAR list. The map still shows
+  // every in-city incident so the coordinator never misses a pin because
+  // of a stray search term.
+  const filteredListIncidents = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return cityIncidents.filter((i) => {
+      if (showFilter === "open") {
+        if (
+          i.status === "resolved" ||
+          i.status === "cancelled" ||
+          i.status === "false_alarm"
+        ) {
+          return false;
+        }
+      }
+      if (showFilter === "critical") {
+        if (i.aiSeverity !== "critical" && i.aiSeverity !== "high") return false;
+      }
+      if (!q) return true;
+      const haystack = [
+        i.callerPhone ?? "",
+        i.locationText ?? "",
+        i.type,
+        i.aiSeverity ?? "",
+        i.status,
+      ]
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [cityIncidents, query, showFilter]);
+
   const selected = selectedId ? cityIncidents.find((i) => i.id === selectedId) : null;
 
-  // For each responder, compute the set of active incidents they're linked
-  // to. Drives the assignment-line overlay.
+  // Camera priority: if the user just selected something, fly to it. If
+  // not, fall back to the most recently arrived incident.
+  const focusedIncidentId = selectedId ?? lastNewIncidentId;
+
   const responderPins: ResponderPin[] = useMemo(() => {
     const cityIncidentIds = new Set(cityIncidents.map((i) => i.id));
     const linksByResponder = new Map<string, string[]>();
@@ -224,7 +264,6 @@ export default function DashboardPage() {
       skills: r.skills,
       currentLat: r.currentLat,
       currentLng: r.currentLng,
-      // Filter linkages to incidents we actually show in this city.
       incidentIds: (linksByResponder.get(r.id) ?? []).filter((id) => cityIncidentIds.has(id)),
     }));
   }, [cityIncidents, cityResponders]);
@@ -242,7 +281,6 @@ export default function DashboardPage() {
     };
   }, [cityIncidents, cityResponders]);
 
-  // City gate: until the coordinator picks an LGA, show a chooser screen.
   if (cityLoaded && !city) {
     return <CityPicker onPick={pickCity} />;
   }
@@ -255,12 +293,17 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex h-screen flex-col bg-resq-dark">
-      <header className="flex h-14 items-center justify-between border-b-2 border-neutral-900 bg-black/40 px-4">
-        <div className="flex items-center gap-4">
-          <Link href="/" className="btn-press flex items-center gap-2 text-neutral-100 hover:text-white">
-            <span className="text-xl">🚨</span>
-            <span className="font-semibold tracking-tight">ResQ Coordinator</span>
+    <div className="flex h-screen flex-col bg-resq-dark text-neutral-100">
+      <header className="flex h-12 items-center justify-between border-b border-neutral-900 bg-resq-panel/80 px-4 backdrop-blur">
+        <div className="flex items-center gap-3">
+          <Link
+            href="/"
+            className="btn-press flex items-center gap-2 text-neutral-100 hover:text-white"
+          >
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-resq-red text-sm shadow-md shadow-resq-red/30">
+              🚨
+            </span>
+            <span className="text-sm font-semibold tracking-tight">ResQ Coordinator</span>
           </Link>
           {city ? (
             <button
@@ -271,60 +314,147 @@ export default function DashboardPage() {
                 }
                 setCityId(null);
               }}
-              className="btn-press flex items-center gap-2 border-2 border-neutral-800 px-3 py-1 text-xs uppercase tracking-widest text-neutral-300 hover:border-resq-red hover:text-white"
+              className="btn-press surface-hover flex items-center gap-1.5 rounded-full border border-neutral-800 bg-neutral-900/60 px-3 py-1 text-[11px] text-neutral-300 hover:border-resq-red/50 hover:text-white"
               title="Change coordinating city"
             >
-              <span className="h-2 w-2 rounded-full bg-resq-red" />
-              {city.label}
-              <span className="text-neutral-500">change</span>
+              <span className="h-1.5 w-1.5 rounded-full bg-resq-red" />
+              <span className="font-medium">{city.label}</span>
+              <span className="text-[9px] uppercase tracking-wider text-neutral-500">
+                change
+              </span>
             </button>
           ) : null}
         </div>
-        <div className="flex items-center gap-3 text-sm">
-          <span
-            className={`flex items-center gap-2 border-2 px-2 py-0.5 ${
-              connected
-                ? "border-green-500/40 text-green-400"
-                : "border-neutral-800 text-neutral-500"
-            }`}
+        <div className="flex items-center gap-2">
+          <Badge
+            tone={connected ? "emerald" : "neutral"}
+            dot
+            className={clsx(connected && "[&_span:first-child]:animate-pulse")}
           >
-            <span
-              className={`h-2 w-2 rounded-full ${
-                connected ? "bg-green-500 animate-pulse" : "bg-neutral-600"
-              }`}
-            />
-            {connected ? "Live" : "Connecting…"}
-          </span>
-          <span className="border-2 border-neutral-800 px-2 py-0.5 text-neutral-400">
-            <span className="font-semibold text-neutral-200">{tally.open}</span> open
-          </span>
-          {tally.critical > 0 ? (
-            <span className="border-2 border-rose-500/40 bg-rose-500/10 px-2 py-0.5 text-xs font-medium uppercase tracking-wide text-rose-200">
-              {tally.critical} critical
-            </span>
-          ) : null}
-          {tally.high > 0 ? (
-            <span className="border-2 border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-xs font-medium uppercase tracking-wide text-amber-200">
-              {tally.high} high
-            </span>
-          ) : null}
-          <span className="border-2 border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-neutral-300">
-            <span className="font-semibold text-emerald-300">{tally.availableResponders}</span>{" "}
-            responders
-          </span>
+            {connected ? "Live" : "Offline"}
+          </Badge>
+          <Link
+            href="/dashboard/admin"
+            className="btn-press surface-hover rounded-full border border-neutral-800 bg-neutral-900/60 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-neutral-400 hover:border-neutral-700 hover:text-white"
+            title="Seed / wipe / delete demo data"
+          >
+            Admin
+          </Link>
         </div>
       </header>
 
-      <main className="flex flex-1 overflow-hidden">
-        <section className="w-80 flex-shrink-0 overflow-y-auto border-r-2 border-neutral-900">
-          <div className="border-b-2 border-neutral-900 bg-black/40 px-4 py-3 text-[10px] uppercase tracking-widest text-neutral-500">
-            Incidents
+      <main className="relative flex flex-1 overflow-hidden">
+        {/* Mobile-only toggle that reveals the sidebar drawer. Positioned
+            top-left over the map; matches the visual language of the
+            floating filter card on the right. */}
+        {isMobile ? (
+          <button
+            type="button"
+            onClick={() => setMobileSidebarOpen((v) => !v)}
+            className="btn-press absolute left-3 top-3 z-20 flex items-center gap-1.5 rounded-full border border-neutral-800 bg-neutral-950/90 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-neutral-200 shadow-lg backdrop-blur hover:border-resq-red/40"
+            aria-expanded={mobileSidebarOpen}
+            aria-controls="incidents-drawer"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              {mobileSidebarOpen ? (
+                <path d="M6 6l12 12M18 6L6 18" />
+              ) : (
+                <>
+                  <line x1="3" y1="6" x2="21" y2="6" />
+                  <line x1="3" y1="12" x2="21" y2="12" />
+                  <line x1="3" y1="18" x2="21" y2="18" />
+                </>
+              )}
+            </svg>
+            {mobileSidebarOpen ? "Close" : `Incidents · ${tally.open}`}
+          </button>
+        ) : null}
+        <section
+          id="incidents-drawer"
+          className={clsx(
+            "flex flex-shrink-0 flex-col bg-resq-panel transition-transform duration-200 ease-out",
+            // Desktop docked sidebar
+            "lg:w-[340px] lg:translate-x-0 lg:border-r lg:border-neutral-900 lg:relative",
+            // Mobile slide-in drawer
+            "absolute inset-y-0 left-0 z-10 w-[85vw] max-w-[360px] border-r border-neutral-900 shadow-2xl shadow-black/60",
+            isMobile && !mobileSidebarOpen && "-translate-x-full lg:translate-x-0",
+          )}
+        >
+          {/* Tally strip — moved from the top bar so the header stays slim. */}
+          <div className="grid grid-cols-3 gap-2 px-3 py-3">
+            <TallyCard label="Open" value={tally.open} tone="neutral" />
+            <TallyCard label="Critical" value={tally.critical} tone="rose" />
+            <TallyCard
+              label="Responders"
+              value={tally.availableResponders}
+              tone="emerald"
+            />
           </div>
-          <IncidentList
-            incidents={cityIncidents}
-            selectedId={selectedId}
-            onSelect={(id) => setSelectedId(id || null)}
-          />
+
+          {/* Search */}
+          <div className="px-3">
+            <div className="flex items-center gap-2 rounded-xl border border-neutral-800 bg-neutral-900/60 px-3 py-2 transition focus-within:border-neutral-700">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-neutral-500"
+                aria-hidden
+              >
+                <circle cx="11" cy="11" r="7" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search caller, location, type"
+                className="w-full bg-transparent text-sm text-neutral-100 placeholder:text-neutral-600 focus:outline-none"
+              />
+              {query ? (
+                <button
+                  type="button"
+                  onClick={() => setQuery("")}
+                  className="text-neutral-500 hover:text-white"
+                  aria-label="Clear search"
+                >
+                  ✕
+                </button>
+              ) : null}
+            </div>
+          </div>
+
+          {/* Filter tabs */}
+          <div className="px-3 pt-2.5">
+            <Tabs
+              ariaLabel="Filter incidents"
+              value={showFilter}
+              onChange={setShowFilter}
+              items={[
+                { value: "all", label: "All" },
+                { value: "open", label: "Open" },
+                { value: "critical", label: "Critical" },
+              ]}
+            />
+          </div>
+
+          <div className="mt-2 flex-1 overflow-y-auto">
+            <IncidentList
+              incidents={filteredListIncidents}
+              selectedId={selectedId}
+              onSelect={(id) => {
+                setSelectedId(id || null);
+                // Manual selection wins — clear the auto-follow latch so
+                // the map doesn't fight the user on the next socket tick.
+                if (id) setLastNewIncidentId(null);
+              }}
+            />
+          </div>
         </section>
 
         <section className="relative flex-1">
@@ -334,15 +464,16 @@ export default function DashboardPage() {
             showResponders={showResponders}
             selectedId={selectedId}
             onSelect={(id) => setSelectedId(id || null)}
+            focusedIncidentId={focusedIncidentId}
             centre={
               city
                 ? { lat: city.centre[0], lng: city.centre[1], zoom: city.zoom }
                 : undefined
             }
           />
-          {/* Floating layer-filter card. Sits over the map, top-left. */}
-          <div className="animate-fade-up absolute left-3 top-3 z-10 border-2 border-neutral-800 bg-neutral-950/90 p-2 text-xs shadow-xl backdrop-blur">
-            <label className="btn-press flex cursor-pointer items-center gap-2 border-l-2 border-l-emerald-500 px-2 py-1">
+          {/* Floating layer-filter card. */}
+          <div className="animate-fade-up absolute left-3 top-3 z-10 rounded-2xl border border-neutral-800 bg-neutral-950/85 p-2.5 text-xs shadow-xl backdrop-blur">
+            <label className="btn-press flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1 hover:bg-neutral-900/60">
               <input
                 type="checkbox"
                 checked={showResponders}
@@ -357,7 +488,7 @@ export default function DashboardPage() {
                 Responders ({responderPins.filter((r) => r.currentLat != null).length})
               </span>
             </label>
-            <div className="mt-1 border-t-2 border-neutral-800 px-2 pt-2 pb-1 text-[10px] uppercase tracking-widest text-neutral-500">
+            <div className="mt-1.5 border-t border-neutral-800 px-2 pt-2 pb-1 text-[10px] uppercase tracking-widest text-neutral-500">
               Legend
             </div>
             <ul className="space-y-1 px-2 pb-1">
@@ -367,11 +498,29 @@ export default function DashboardPage() {
               <LegendRow color="#ca8a04" label="Accident" />
             </ul>
           </div>
+
+          {/* Severity bubble: high/critical count, top-right of map. Only
+              renders when there's something to draw attention to. */}
+          {tally.critical + tally.high > 0 ? (
+            <div className="animate-fade-up absolute right-3 top-3 z-10 flex items-center gap-2">
+              {tally.critical > 0 ? (
+                <Badge tone="rose" className="shadow-lg shadow-rose-900/40">
+                  {tally.critical} Critical
+                </Badge>
+              ) : null}
+              {tally.high > 0 ? (
+                <Badge tone="amber" className="shadow-lg shadow-amber-900/40">
+                  {tally.high} High
+                </Badge>
+              ) : null}
+            </div>
+          ) : null}
         </section>
 
         {selected ? (
           <IncidentPanel
             incident={selected}
+            variant={isMobile ? "mobile-sheet" : "desktop"}
             onClose={() => setSelectedId(null)}
             onUpdated={(patch) =>
               setIncidents((prev) =>
@@ -387,9 +536,43 @@ export default function DashboardPage() {
   );
 }
 
-// Gate shown the first time a coordinator opens /dashboard, or after they
-// hit "change" in the header. Selection is persisted to localStorage so a
-// PH coordinator and a Lagos coordinator each keep their own view.
+// ---- Tally / filter / city-picker primitives -------------------------------
+
+function TallyCard({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number;
+  tone: "neutral" | "rose" | "emerald";
+}) {
+  // Tone only kicks in when there's something to flag — a "Critical 0"
+  // shouldn't glow rose, that defeats the signal.
+  const isActive = value > 0;
+  const toneClass =
+    isActive && tone === "rose"
+      ? "text-rose-300"
+      : isActive && tone === "emerald"
+        ? "text-emerald-300"
+        : "text-neutral-100";
+  return (
+    <div className="surface-hover rounded-xl border border-neutral-900 bg-neutral-900/40 px-3 py-2 hover:border-neutral-800">
+      <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
+        {label}
+      </div>
+      <div
+        className={clsx(
+          "mt-0.5 text-xl font-semibold leading-tight tabular-nums",
+          toneClass,
+        )}
+      >
+        {value}
+      </div>
+    </div>
+  );
+}
+
 function CityPicker({ onPick }: { onPick: (id: string) => void }) {
   return (
     <main className="flex min-h-screen items-center justify-center bg-resq-dark px-6 py-16">
@@ -414,7 +597,7 @@ function CityPicker({ onPick }: { onPick: (id: string) => void }) {
               key={c.id}
               type="button"
               onClick={() => onPick(c.id)}
-              className="btn-press group border-l-4 border-2 border-neutral-900 border-l-resq-red bg-neutral-950 p-5 text-left transition hover:border-neutral-700 hover:border-l-resq-red"
+              className="btn-press group rounded-xl border border-neutral-900 bg-neutral-900/40 p-5 text-left transition hover:border-resq-red/40 hover:bg-neutral-900/70"
             >
               <div className="text-[10px] uppercase tracking-widest text-resq-red">
                 {c.id.replace("-", " ")}

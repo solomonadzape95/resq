@@ -93,12 +93,18 @@ Available responders nearby: ${incidentSummary.availableResponders}`;
   }
 }
 
+export type ExtractedIncidentType = "medical" | "fire" | "crime" | "accident" | null;
+
 export interface ExtractedLocation {
   location_text: string | null;
   map_search_query: string | null;
   victim_details: string | null;
   urgency_signals: string[] | null;
   landmarks: string[] | null;
+  // Inferred from the transcript only when clearly indicated by keywords
+  // (e.g. "fire", "bleeding", "robbery", "car crash"). Null when ambiguous;
+  // the caller's incident keeps its initial type rather than guessing wrong.
+  incident_type: ExtractedIncidentType;
 }
 
 export async function extractLocation(transcript: string): Promise<ExtractedLocation> {
@@ -107,7 +113,7 @@ export async function extractLocation(transcript: string): Promise<ExtractedLoca
       {
         role: "system",
         content:
-          "You are an emergency dispatcher AI. Extract structured data from this call transcript. Return ONLY JSON with these fields: location_text (verbatim location description from caller), map_search_query (optimised Google Maps search string for Nigeria), victim_details (age, condition, number of people if mentioned), urgency_signals (any words indicating worsening condition), landmarks (array of mentioned landmarks). If a field is not mentioned, use null. No preamble.",
+          "You are an emergency dispatcher AI. Extract structured data from this call transcript. Return ONLY JSON with these fields: location_text (verbatim location description from caller), map_search_query (optimised Google Maps search string for Nigeria), victim_details (age, condition, number of people if mentioned), urgency_signals (any words indicating worsening condition), landmarks (array of mentioned landmarks), incident_type (one of \"medical\", \"fire\", \"crime\", \"accident\" — pick the single best match based on the caller's words; use null only if truly ambiguous). If a field is not mentioned, use null. No preamble.",
       },
       { role: "user", content: transcript },
     ],
@@ -115,7 +121,20 @@ export async function extractLocation(transcript: string): Promise<ExtractedLoca
   );
 
   try {
-    return JSON.parse(raw) as ExtractedLocation;
+    const parsed = JSON.parse(raw) as Partial<ExtractedLocation>;
+    const type = parsed.incident_type;
+    const validType: ExtractedIncidentType =
+      type === "medical" || type === "fire" || type === "crime" || type === "accident"
+        ? type
+        : null;
+    return {
+      location_text: parsed.location_text ?? null,
+      map_search_query: parsed.map_search_query ?? null,
+      victim_details: parsed.victim_details ?? null,
+      urgency_signals: parsed.urgency_signals ?? null,
+      landmarks: parsed.landmarks ?? null,
+      incident_type: validType,
+    };
   } catch {
     return {
       location_text: null,
@@ -123,6 +142,7 @@ export async function extractLocation(transcript: string): Promise<ExtractedLoca
       victim_details: null,
       urgency_signals: null,
       landmarks: null,
+      incident_type: null,
     };
   }
 }

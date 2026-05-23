@@ -2,6 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { apiUrl } from "@/lib/api";
+import { Badge } from "@/components/ui/Badge";
+
+type NoMicReason = "insecure_context" | "no_media_api" | "denied" | "unknown";
 
 type Phase =
   | { kind: "init" }
@@ -9,7 +12,30 @@ type Phase =
   | { kind: "recording" }
   | { kind: "uploading" }
   | { kind: "ended" }
-  | { kind: "error"; message: string };
+  | { kind: "error"; message: string }
+  // Mic is unavailable for one of the structural reasons below — usually
+  // the page is on HTTP (insecure context). The text-mode fallback button
+  // offers a way to still send an incident.
+  | { kind: "no_mic"; reason: NoMicReason }
+  // Text-input alternative to voicemail. Reachable from `no_mic` or by
+  // opt-in. Submits via the same /voice/transcript endpoint, just with no
+  // audio_base64 and a single user line.
+  | { kind: "text_mode" };
+
+// Decide if this browser can actually record audio. The check has to
+// happen BEFORE we call getUserMedia, because on an insecure context (any
+// non-HTTPS, non-localhost origin) the browser rejects the call with a
+// generic error that doesn't tell the user what to do.
+function detectMicCapability(): { canRecord: boolean; reason?: NoMicReason } {
+  if (typeof window === "undefined") return { canRecord: false, reason: "unknown" };
+  if (!window.isSecureContext) {
+    return { canRecord: false, reason: "insecure_context" };
+  }
+  if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== "function") {
+    return { canRecord: false, reason: "no_media_api" };
+  }
+  return { canRecord: true };
+}
 
 interface CapturedLine {
   role: "user";
@@ -42,15 +68,78 @@ export function VoicemailPanel({ phoneNumber, incidentId, onClose }: VoicemailPa
   const [geo, setGeo] = useState<GeoFix | null>(null);
   const [geoStatus, setGeoStatus] = useState<"idle" | "ok" | "denied" | "unavailable">("idle");
   const [sttSupported, setSttSupported] = useState<boolean>(true);
+  const [micCapability] = useState(() => detectMicCapability());
+  // Backing text for the text-mode <textarea>. Lifted to component state so
+  // the parent can render it conditionally without losing keystrokes.
+  const [textDraft, setTextDraft] = useState("");
+  // Once the user enters text mode, all subsequent phases (uploading,
+  // ended, error) keep rendering the text shell so the success/error
+  // message lands in context.
+  const flowKindRef = useRef<"voice" | "text">("voice");
 
   const transcriptRef = useRef<CapturedLine[]>([]);
   const interimRef = useRef<string>("");
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const audioMimeRef = useRef<string>("audio/webm");
   const recognitionRef = useRef<{ stop: () => void; abort: () => void } | null>(null);
   const uploadedRef = useRef(false);
   const timerRef = useRef<number | null>(null);
   const transcriptEndRef = useRef<HTMLDivElement | null>(null);
+
+  // Stop the MediaRecorder, await its final `ondataavailable` event, build
+  // the blob and base64-encode it. Resolves to null if no audio was
+  // captured. Also tears down the live mic stream once recording is fully
+  // flushed — order matters: stop the recorder *before* the tracks so the
+  // recorder doesn't emit an error and drop the trailing chunk.
+  const flushAudio = useCallback(async (): Promise<{
+    base64: string;
+    mime: string;
+  } | null> => {
+    const rec = recorderRef.current;
+
+    const releaseTracks = () => {
+      mediaStreamRef.current?.getTracks().forEach((t) => t.stop());
+      mediaStreamRef.current = null;
+      recorderRef.current = null;
+    };
+
+    if (!rec) {
+      releaseTracks();
+      return null;
+    }
+
+    return new Promise((resolve) => {
+      const finalise = () => {
+        releaseTracks();
+        const blob = new Blob(audioChunksRef.current, { type: audioMimeRef.current });
+        if (blob.size === 0) {
+          resolve(null);
+          return;
+        }
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const dataUrl = reader.result as string;
+          const base64 = dataUrl.split(",")[1] ?? "";
+          resolve({ base64, mime: audioMimeRef.current });
+        };
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(blob);
+      };
+
+      if (rec.state === "inactive") {
+        finalise();
+        return;
+      }
+      rec.onstop = finalise;
+      try {
+        rec.stop();
+      } catch {
+        finalise();
+      }
+    });
+  }, []);
 
   // ---- Geolocation ----------------------------------------------------
   useEffect(() => {
@@ -86,16 +175,24 @@ export function VoicemailPanel({ phoneNumber, incidentId, onClose }: VoicemailPa
     const captured = transcriptRef.current;
 
     setPhase({ kind: "uploading" });
+
+    // Flush MediaRecorder first so we can include the audio blob if the
+    // client-side Web Speech API didn't manage to transcribe anything
+    // (iOS Safari, Firefox, denied permissions, etc.).
+    const audio = await flushAudio();
+
+    // If we have neither client transcript nor recorded audio, don't post
+    // a fake placeholder — surface the failure and let the user retry.
+    if (captured.length === 0 && !audio) {
+      uploadedRef.current = false;
+      setPhase({
+        kind: "error",
+        message: "Couldn't capture any speech. Check the mic and try again.",
+      });
+      return;
+    }
+
     try {
-      const payload = captured.length > 0
-        ? captured
-        : [
-            {
-              role: "user" as const,
-              message:
-                "[no transcript captured. coordinator should call this number back.]",
-            },
-          ];
       const res = await fetch(`${apiUrl}/voice/transcript`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -103,7 +200,10 @@ export function VoicemailPanel({ phoneNumber, incidentId, onClose }: VoicemailPa
           conversation_id: `web-${Date.now()}`,
           agent_id: "web-direct",
           caller_id: phoneNumber,
-          transcript: payload,
+          transcript: captured,
+          ...(audio
+            ? { audio_base64: audio.base64, audio_mime: audio.mime }
+            : {}),
           ...(incidentId ? { incident_id: incidentId } : {}),
           ...(geo
             ? {
@@ -115,8 +215,27 @@ export function VoicemailPanel({ phoneNumber, incidentId, onClose }: VoicemailPa
         }),
       });
       if (!res.ok) {
-        const body = await res.text();
-        throw new Error(`API ${res.status}: ${body.slice(0, 200)}`);
+        // Prefer the server's human message + reason when it gave us JSON
+        // (e.g. STT not configured, recording was silent, etc.) — they're
+        // much more actionable than a raw status code.
+        const bodyText = await res.text();
+        let friendly = `API ${res.status}: ${bodyText.slice(0, 200)}`;
+        try {
+          const parsed = JSON.parse(bodyText) as {
+            message?: string;
+            reason?: string;
+          };
+          if (parsed.message) {
+            friendly = parsed.reason
+              ? `${parsed.message} (${parsed.reason})`
+              : parsed.message;
+          }
+        } catch {
+          /* not JSON — keep the raw fallback */
+        }
+        // Allow another hangup-and-retry without forcing a panel reset.
+        uploadedRef.current = false;
+        throw new Error(friendly);
       }
       setPhase({ kind: "ended" });
     } catch (err) {
@@ -125,11 +244,19 @@ export function VoicemailPanel({ phoneNumber, incidentId, onClose }: VoicemailPa
         message: err instanceof Error ? err.message : String(err),
       });
     }
-  }, [phoneNumber, incidentId, geo]);
+  }, [phoneNumber, incidentId, geo, flushAudio]);
 
   // ---- Start recording session ----------------------------------------
   useEffect(() => {
     let cancelled = false;
+
+    // Hard-block before we ever touch getUserMedia. On HTTP origins the
+    // call would throw a generic SecurityError; we'd rather surface a
+    // specific reason and an alternative path (text mode).
+    if (!micCapability.canRecord) {
+      setPhase({ kind: "no_mic", reason: micCapability.reason ?? "unknown" });
+      return;
+    }
 
     (async () => {
       try {
@@ -143,6 +270,16 @@ export function VoicemailPanel({ phoneNumber, incidentId, onClose }: VoicemailPa
 
         try {
           const rec = new MediaRecorder(stream);
+          // Pick whatever mime the browser actually negotiated (Chrome
+          // typically returns audio/webm;codecs=opus, Safari audio/mp4).
+          // We forward this to the server so Scribe gets the right ext.
+          if (rec.mimeType) audioMimeRef.current = rec.mimeType;
+          audioChunksRef.current = [];
+          rec.ondataavailable = (e) => {
+            if (e.data && e.data.size > 0) {
+              audioChunksRef.current.push(e.data);
+            }
+          };
           recorderRef.current = rec;
           rec.start();
         } catch {
@@ -210,17 +347,26 @@ export function VoicemailPanel({ phoneNumber, incidentId, onClose }: VoicemailPa
         }, 250);
       } catch (err) {
         if (cancelled) return;
-        setPhase({
-          kind: "error",
-          message: err instanceof Error ? err.message : "Microphone unavailable",
-        });
+        // The browser sometimes throws even after `isSecureContext` is
+        // true (e.g. the user denied permission, or another tab is using
+        // the mic). Treat denials as `no_mic` so the text-mode CTA still
+        // appears; other errors stay as the generic error phase.
+        const name = err instanceof Error ? err.name : "";
+        if (name === "NotAllowedError" || name === "SecurityError") {
+          setPhase({ kind: "no_mic", reason: "denied" });
+        } else {
+          setPhase({
+            kind: "error",
+            message: err instanceof Error ? err.message : "Microphone unavailable",
+          });
+        }
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [micCapability]);
 
   // Auto-scroll transcript area to the bottom as new lines arrive.
   useEffect(() => {
@@ -228,6 +374,9 @@ export function VoicemailPanel({ phoneNumber, incidentId, onClose }: VoicemailPa
   }, [lines.length, interim]);
 
   // ---- Cleanup --------------------------------------------------------
+  // stopEverything only kills the recognition+timer. The MediaRecorder and
+  // mic tracks are torn down by flushAudio so the upload gets the final
+  // data chunk before the stream is released.
   const stopEverything = useCallback(() => {
     if (timerRef.current != null) {
       window.clearInterval(timerRef.current);
@@ -239,22 +388,49 @@ export function VoicemailPanel({ phoneNumber, incidentId, onClose }: VoicemailPa
       /* ignore */
     }
     recognitionRef.current = null;
-    try {
-      recorderRef.current?.stop();
-    } catch {
-      /* ignore */
-    }
-    recorderRef.current = null;
-    mediaStreamRef.current?.getTracks().forEach((t) => t.stop());
-    mediaStreamRef.current = null;
   }, []);
 
-  useEffect(() => () => stopEverything(), [stopEverything]);
+  // Unmount-time hard cleanup: if the user closed the panel before hanging
+  // up, kill the recorder + tracks so the mic indicator goes away.
+  useEffect(
+    () => () => {
+      if (timerRef.current != null) {
+        window.clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+      try {
+        recognitionRef.current?.stop();
+      } catch {
+        /* ignore */
+      }
+      recognitionRef.current = null;
+      try {
+        recorderRef.current?.stop();
+      } catch {
+        /* ignore */
+      }
+      recorderRef.current = null;
+      mediaStreamRef.current?.getTracks().forEach((t) => t.stop());
+      mediaStreamRef.current = null;
+    },
+    [],
+  );
 
   const handleHangup = useCallback(() => {
     stopEverything();
     void uploadTranscript();
   }, [stopEverything, uploadTranscript]);
+
+  // Text-mode submit. Same /voice/transcript endpoint; we just stuff the
+  // typed message into transcriptRef so uploadTranscript can carry it
+  // through the existing flow (which also handles the empty-audio path).
+  const handleTextSubmit = useCallback(() => {
+    const text = textDraft.trim();
+    if (!text) return;
+    transcriptRef.current = [{ role: "user", message: text }];
+    uploadedRef.current = false;
+    void uploadTranscript();
+  }, [textDraft, uploadTranscript]);
 
   // ---- Labels ---------------------------------------------------------
   const isLive = phase.kind === "recording";
@@ -272,6 +448,10 @@ export function VoicemailPanel({ phoneNumber, incidentId, onClose }: VoicemailPa
         return "SENT";
       case "error":
         return "ERROR";
+      case "no_mic":
+        return "NO MIC";
+      case "text_mode":
+        return "TEXT MODE";
     }
   }, [phase.kind]);
 
@@ -289,6 +469,10 @@ export function VoicemailPanel({ phoneNumber, incidentId, onClose }: VoicemailPa
         return "Help is on the way";
       case "error":
         return "Recording failed";
+      case "no_mic":
+        return "Mic unavailable";
+      case "text_mode":
+        return "Type your emergency";
     }
   }, [phase.kind]);
 
@@ -307,30 +491,72 @@ export function VoicemailPanel({ phoneNumber, incidentId, onClose }: VoicemailPa
         return "The coordinator has your location and transcript.";
       case "error":
         return phase.message;
+      case "no_mic":
+        return NO_MIC_EXPLANATION[phase.reason];
+      case "text_mode":
+        return "Press send when you're done. AI extracts the location and severity.";
     }
   }, [phase, sttSupported]);
 
   const visibleLines = lines.slice(-3);
 
+  // Early returns for the two non-voice flows. They render a different
+  // shell so we don't fake a mic icon + transcript bubble when neither
+  // applies.
+  if (phase.kind === "no_mic") {
+    return (
+      <NoMicShell
+        reason={phase.reason}
+        headline={headline}
+        subline={subline}
+        statusLabel={statusLabel}
+        onSwitchToText={() => {
+          flowKindRef.current = "text";
+          setPhase({ kind: "text_mode" });
+        }}
+        onClose={onClose}
+      />
+    );
+  }
+
+  if (flowKindRef.current === "text") {
+    return (
+      <TextModeShell
+        phase={phase}
+        headline={headline}
+        subline={subline}
+        statusLabel={statusLabel}
+        textDraft={textDraft}
+        setTextDraft={setTextDraft}
+        onSubmit={handleTextSubmit}
+        onClose={onClose}
+      />
+    );
+  }
+
   return (
-    <div className="flex h-full flex-col rounded-sm bg-gradient-to-b from-neutral-950 to-black p-3 text-emerald-100">
+    <div className="flex h-full flex-col rounded-2xl border border-white/5 bg-gradient-to-b from-neutral-950 to-black p-3.5 text-emerald-100">
       {/* ---- Top status bar ---- */}
-      <div className="flex items-center justify-between border-b border-emerald-500/20 pb-2">
-        <div className="flex items-center gap-2">
-          <span
-            className={`inline-block h-2 w-2 rounded-full ${
-              isLive
-                ? "bg-red-500 animate-pulse"
-                : phase.kind === "ended"
-                  ? "bg-emerald-400"
-                  : "bg-amber-400"
-            }`}
-          />
-          <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-200/90">
-            {statusLabel}
-          </span>
-        </div>
-        <span className="font-mono text-[11px] text-emerald-200/80">{formatTime(seconds)}</span>
+      <div className="flex items-center justify-between border-b border-white/5 pb-2.5">
+        <Badge
+          size="sm"
+          tone={
+            isLive
+              ? "red"
+              : phase.kind === "ended"
+                ? "emerald"
+                : phase.kind === "error"
+                  ? "red"
+                  : "amber"
+          }
+          dot
+          className={isLive ? "[&_span:first-child]:animate-pulse" : ""}
+        >
+          {statusLabel}
+        </Badge>
+        <span className="font-mono text-[11px] tabular-nums text-emerald-200/80">
+          {formatTime(seconds)}
+        </span>
       </div>
 
       {/* ---- Mic with pulse rings ---- */}
@@ -389,7 +615,7 @@ export function VoicemailPanel({ phoneNumber, incidentId, onClose }: VoicemailPa
       {/* ---- Transcript bubble ---- */}
       <div className="mt-3 flex-1 overflow-hidden">
         {visibleLines.length === 0 && !interim ? (
-          <div className="flex h-full items-center justify-center text-center text-[10px] uppercase tracking-widest text-emerald-300/40">
+          <div className="flex h-full items-center justify-center text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-300/40">
             {isLive ? "Listening…" : "Awaiting line"}
           </div>
         ) : (
@@ -402,7 +628,7 @@ export function VoicemailPanel({ phoneNumber, incidentId, onClose }: VoicemailPa
                 return (
                   <div
                     key={`${i}-${line.slice(0, 8)}`}
-                    className="rounded-sm border border-emerald-500/15 bg-emerald-500/5 px-2 py-1 text-[11px] leading-snug text-emerald-50"
+                    className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-2.5 py-1.5 text-[11px] leading-snug text-emerald-50"
                     style={{ opacity }}
                   >
                     {line}
@@ -410,7 +636,7 @@ export function VoicemailPanel({ phoneNumber, incidentId, onClose }: VoicemailPa
                 );
               })}
               {interim ? (
-                <div className="rounded-sm border border-dashed border-emerald-500/30 px-2 py-1 text-[11px] italic leading-snug text-emerald-200/60">
+                <div className="rounded-xl border border-dashed border-emerald-500/30 px-2.5 py-1.5 text-[11px] italic leading-snug text-emerald-200/60">
                   {interim}
                 </div>
               ) : null}
@@ -420,20 +646,17 @@ export function VoicemailPanel({ phoneNumber, incidentId, onClose }: VoicemailPa
       </div>
 
       {/* ---- Footer chips ---- */}
-      <div className="mt-2 flex items-center justify-between text-[9px] uppercase tracking-[0.18em]">
-        <span
-          className={`inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 ${
+      <div className="mt-2.5 flex items-center justify-between gap-2">
+        <Badge
+          size="sm"
+          tone={
             geoStatus === "ok"
-              ? "border-emerald-500/40 text-emerald-300"
+              ? "emerald"
               : geoStatus === "denied"
-                ? "border-red-500/40 text-red-300"
-                : "border-emerald-500/20 text-emerald-300/60"
-          }`}
+                ? "red"
+                : "neutral"
+          }
         >
-          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-            <circle cx="12" cy="10" r="3" />
-          </svg>
           {geoStatus === "ok"
             ? geo?.accuracy != null
               ? `GPS ±${Math.round(geo.accuracy)}m`
@@ -443,20 +666,10 @@ export function VoicemailPanel({ phoneNumber, incidentId, onClose }: VoicemailPa
               : geoStatus === "unavailable"
                 ? "GPS off"
                 : "Locating"}
-        </span>
-        <span
-          className={`inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 ${
-            sttSupported
-              ? "border-emerald-500/40 text-emerald-300"
-              : "border-amber-500/40 text-amber-300"
-          }`}
-        >
-          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <rect width="6" height="12" x="9" y="2" rx="3" />
-            <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-          </svg>
+        </Badge>
+        <Badge size="sm" tone={sttSupported ? "emerald" : "amber"}>
           {sttSupported ? "Live captions" : "Captions off"}
-        </span>
+        </Badge>
       </div>
 
       {/* ---- Hangup button ---- */}
@@ -469,12 +682,12 @@ export function VoicemailPanel({ phoneNumber, incidentId, onClose }: VoicemailPa
             handleHangup();
           }
         }}
-        className={`btn-press mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-sm border-2 font-semibold uppercase tracking-[0.12em] transition-colors ${
+        className={`btn-press mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-2xl font-semibold uppercase tracking-wider transition-colors ${
           isLive || phase.kind === "uploading" || phase.kind === "init" || phase.kind === "requesting_mic"
-            ? "border-red-500/60 bg-red-600 text-white shadow-lg shadow-red-900/40 hover:bg-red-700"
+            ? "bg-red-600 text-white shadow-lg shadow-red-900/50 hover:bg-red-500"
             : phase.kind === "ended"
-              ? "border-emerald-500/40 bg-emerald-700/80 text-white hover:bg-emerald-700"
-              : "border-neutral-700 bg-neutral-800 text-white hover:bg-neutral-700"
+              ? "bg-emerald-600 text-white shadow-lg shadow-emerald-900/40 hover:bg-emerald-500"
+              : "bg-neutral-800 text-white hover:bg-neutral-700"
         }`}
         aria-label={isLive ? "Hang up" : "Close"}
       >
@@ -490,6 +703,169 @@ export function VoicemailPanel({ phoneNumber, incidentId, onClose }: VoicemailPa
         ) : (
           <span className="text-[13px]">Cancel</span>
         )}
+      </button>
+    </div>
+  );
+}
+
+// Mic-unavailable copy keyed by reason. Each ends with the action the user
+// can take, written for a non-technical reader.
+const NO_MIC_EXPLANATION: Record<NoMicReason, string> = {
+  insecure_context:
+    "This page is on HTTP. Phones block the mic until the connection is HTTPS. Open https://resq-web.onrender.com/simulator on your phone, or set up an HTTPS tunnel with `ngrok http 3000`.",
+  no_media_api:
+    "This browser doesn't support voice capture. Try Chrome or Safari, or use text mode below.",
+  denied:
+    "Microphone permission was denied. Allow mic access in your browser settings and reload — or use text mode below.",
+  unknown: "We couldn't access the mic on this device. Use text mode below.",
+};
+
+function NoMicShell({
+  reason,
+  headline,
+  subline,
+  statusLabel,
+  onSwitchToText,
+  onClose,
+}: {
+  reason: NoMicReason;
+  headline: string;
+  subline: string;
+  statusLabel: string;
+  onSwitchToText: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <div className="flex h-full flex-col rounded-2xl border border-white/5 bg-gradient-to-b from-neutral-950 to-black p-3.5 text-neutral-100">
+      <div className="flex items-center justify-between border-b border-white/5 pb-2.5">
+        <Badge tone="amber" size="sm" dot>
+          {statusLabel}
+        </Badge>
+        <button
+          type="button"
+          onClick={onClose}
+          className="btn-press text-[11px] uppercase tracking-wider text-neutral-500 hover:text-white"
+        >
+          Close
+        </button>
+      </div>
+      <div className="flex flex-1 flex-col items-center justify-center gap-3 px-2 text-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/10 ring-1 ring-amber-400/40">
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="text-amber-200"
+            aria-hidden
+          >
+            <line x1="2" y1="2" x2="22" y2="22" />
+            <path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V5a3 3 0 0 0-5.94-.6" />
+            <path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23" />
+            <line x1="12" y1="19" x2="12" y2="22" />
+          </svg>
+        </div>
+        <div className="text-sm font-semibold text-white">{headline}</div>
+        <p className="max-w-[260px] text-[11px] leading-relaxed text-neutral-400">
+          {NO_MIC_EXPLANATION[reason] ?? subline}
+        </p>
+      </div>
+      <button
+        type="button"
+        onClick={onSwitchToText}
+        className="btn-press mt-2 flex h-12 w-full items-center justify-center rounded-2xl bg-resq-red text-[12px] font-semibold uppercase tracking-wider text-white shadow-lg shadow-resq-red/25 hover:bg-red-700"
+      >
+        Use text mode instead →
+      </button>
+    </div>
+  );
+}
+
+function TextModeShell({
+  phase,
+  headline,
+  subline,
+  statusLabel,
+  textDraft,
+  setTextDraft,
+  onSubmit,
+  onClose,
+}: {
+  phase: Phase;
+  headline: string;
+  subline: string;
+  statusLabel: string;
+  textDraft: string;
+  setTextDraft: (v: string) => void;
+  onSubmit: () => void;
+  onClose: () => void;
+}) {
+  const isSending = phase.kind === "uploading";
+  const isDone = phase.kind === "ended";
+  const isError = phase.kind === "error";
+  const canSubmit =
+    textDraft.trim().length > 0 && !isSending && !isDone;
+
+  return (
+    <div className="flex h-full flex-col rounded-2xl border border-white/5 bg-gradient-to-b from-neutral-950 to-black p-3.5 text-neutral-100">
+      <div className="flex items-center justify-between border-b border-white/5 pb-2.5">
+        <Badge
+          tone={
+            isError ? "red" : isDone ? "emerald" : isSending ? "amber" : "rose"
+          }
+          size="sm"
+          dot
+        >
+          {statusLabel}
+        </Badge>
+        <button
+          type="button"
+          onClick={onClose}
+          className="btn-press text-[11px] uppercase tracking-wider text-neutral-500 hover:text-white"
+        >
+          Close
+        </button>
+      </div>
+
+      <div className="mt-3 space-y-1 text-center">
+        <div className="text-sm font-semibold text-white">{headline}</div>
+        <p className="mx-auto max-w-[260px] text-[11px] leading-snug text-neutral-400">
+          {subline}
+        </p>
+      </div>
+
+      <textarea
+        value={textDraft}
+        onChange={(e) => setTextDraft(e.target.value)}
+        disabled={isSending || isDone}
+        placeholder="e.g. Fire at the back of the petrol station on Aba Road, near Slaughter junction. Two people need help."
+        rows={5}
+        className="mt-3 w-full flex-1 rounded-2xl border border-neutral-800 bg-black/40 px-3 py-2.5 text-sm leading-relaxed text-neutral-100 placeholder:text-neutral-600 outline-none transition focus:border-resq-red/50 disabled:opacity-60"
+      />
+
+      <button
+        type="button"
+        onClick={onSubmit}
+        disabled={!canSubmit}
+        className={`btn-press mt-3 flex h-12 w-full items-center justify-center rounded-2xl text-[12px] font-semibold uppercase tracking-wider transition ${
+          isDone
+            ? "bg-emerald-600 text-white shadow-lg shadow-emerald-900/40"
+            : isError
+              ? "bg-red-600 text-white shadow-lg shadow-red-900/40 hover:bg-red-500"
+              : "bg-resq-red text-white shadow-lg shadow-resq-red/25 hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-neutral-800 disabled:text-neutral-500 disabled:shadow-none"
+        }`}
+      >
+        {isSending
+          ? "Sending…"
+          : isDone
+            ? "Sent ✓"
+            : isError
+              ? "Retry"
+              : "Send to dispatcher"}
       </button>
     </div>
   );

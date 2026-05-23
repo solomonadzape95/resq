@@ -8,7 +8,7 @@ import { jitteredFallback } from "../lib/fallbackLocation.js";
 import { extractAndGeocode } from "../services/locationPipeline.js";
 import { triageIncident } from "../services/openrouter.js";
 import { findCandidateResponders } from "../services/matcher.js";
-import { logSigVerdict, verifySignature } from "../services/elevenlabs.js";
+import { logSigVerdict, transcribeAudio, verifySignature } from "../services/elevenlabs.js";
 
 export const voiceRouter = Router();
 
@@ -20,6 +20,9 @@ const transcriptBody = z.object({
   conversation_id: z.string(),
   agent_id: z.string().optional(),
   caller_id: z.string().nullish(),
+  // transcript may be empty when the client browser couldn't run STT
+  // (Safari/iOS, Firefox, etc). In that case the client uploads the raw
+  // audio in `audio_base64` and we transcribe server-side.
   transcript: z
     .array(
       z.object({
@@ -27,7 +30,11 @@ const transcriptBody = z.object({
         message: z.string(),
       }),
     )
-    .min(1),
+    .default([]),
+  // Base64-encoded MediaRecorder blob from the simulator's VoicemailPanel,
+  // used as a fallback when the client transcript is empty.
+  audio_base64: z.string().optional(),
+  audio_mime: z.string().optional(),
   // Optional device GPS from the simulator's VoicemailPanel. When present
   // the incident is pinned at the caller's actual position instead of the
   // demo jittered fallback.
@@ -72,30 +79,90 @@ voiceRouter.post("/transcript", async (req: RequestWithRawBody, res) => {
     conversation_id,
     caller_id,
     transcript,
+    audio_base64,
+    audio_mime,
     location_lat,
     location_lng,
   } = parsed.data;
   const hasDeviceGps = typeof location_lat === "number" && typeof location_lng === "number";
 
-  const userSpeech = transcript
+  let userSpeech = transcript
     .filter((t) => t.role === "user")
     .map((t) => t.message.trim())
     .filter(Boolean)
     .join(" ");
 
+  // STT fallback: if the browser didn't capture any speech (iOS Safari,
+  // Firefox, denied perms, etc.) but the client uploaded the raw audio,
+  // transcribe it server-side. Record the outcome so we can surface a
+  // specific error to the client instead of a generic "no speech".
+  let sttReason: string | null = null;
+  let sttDetail: string | undefined;
+  const audioBytes = audio_base64 ? Buffer.byteLength(audio_base64, "base64") : 0;
+
+  if (!userSpeech && audio_base64) {
+    const buf = Buffer.from(audio_base64, "base64");
+    const result = await transcribeAudio(buf, audio_mime ?? "audio/webm");
+    if (result.kind === "ok") {
+      userSpeech = result.text;
+      logger.info(
+        { conversation_id, len: result.text.length },
+        "[voice] STT fallback succeeded",
+      );
+    } else {
+      sttReason = result.kind;
+      if (result.kind === "failed") {
+        sttDetail = result.message;
+        logger.warn(
+          { conversation_id, status: result.status, message: result.message },
+          "[voice] STT fallback failed",
+        );
+      } else {
+        logger.warn(
+          { conversation_id, reason: result.kind, audioBytes },
+          "[voice] STT fallback did not produce text",
+        );
+      }
+    }
+  } else if (!userSpeech && !audio_base64) {
+    sttReason = "no_audio_uploaded";
+  }
+
   if (!userSpeech) {
-    logger.warn({ conversation_id }, "[voice] no user speech in transcript");
-    return res.status(200).json({ ok: true, skipped: "no_user_speech" });
+    const message =
+      sttReason === "not_configured"
+        ? "Server-side transcription isn't configured. Set ELEVENLABS_API_KEY on the API."
+        : sttReason === "empty"
+          ? "We couldn't hear any speech in the recording. Please try again in a quieter spot."
+          : sttReason === "failed"
+            ? `Transcription service errored${sttDetail ? `: ${sttDetail}` : "."}`
+            : sttReason === "no_audio_uploaded"
+              ? "No transcript or audio was uploaded — try hanging up after speaking."
+              : "We couldn't hear any speech on this call. Please try again.";
+    logger.warn(
+      { conversation_id, sttReason, audioBytes },
+      "[voice] rejecting transcript: no user speech",
+    );
+    return res.status(400).json({
+      error: "no_speech_captured",
+      reason: sttReason,
+      audioBytes,
+      message,
+    });
   }
 
   // Try to attach to an existing open incident for this caller before
   // creating a new one — covers the USSD→callback→voicemail flow where
-  // the USSD route has already created the row.
+  // the USSD route created a shell row with no transcript yet. Critically,
+  // we only attach when `transcriptFull` is still null: if the existing
+  // incident already has a transcript, this is a *new* call about a
+  // different problem and deserves its own incident row.
   const existing = caller_id
     ? await prisma.incident.findFirst({
         where: {
           callerPhone: caller_id,
           status: { in: ["new", "triaged"] },
+          transcriptFull: null,
         },
         orderBy: { createdAt: "desc" },
       })
@@ -256,7 +323,8 @@ async function runTriage(incidentId: string, type: "medical" | "fire" | "crime" 
 async function runLocationPipeline(incidentId: string, transcript: string) {
   try {
     const { extracted, place } = await extractAndGeocode(transcript);
-    if (!extracted.location_text && !place) return;
+    const hasType = extracted.incident_type !== null;
+    if (!extracted.location_text && !place && !hasType) return;
 
     // If we already have device-GPS coords on this incident
     // (locationConfirmed === true was set by the voicemail POST), trust
@@ -265,15 +333,22 @@ async function runLocationPipeline(incidentId: string, transcript: string) {
     // ever upgrade jittered/USSD-fallback coords, never overwrite real GPS.
     const current = await prisma.incident.findUnique({
       where: { id: incidentId },
-      select: { locationConfirmed: true },
+      select: { locationConfirmed: true, type: true },
     });
     const allowCoordOverwrite = !current?.locationConfirmed;
+    // Only re-type when the AI returned a concrete type AND it differs from
+    // the row's current one (avoids a no-op write + broadcast).
+    const newType =
+      hasType && extracted.incident_type !== current?.type
+        ? extracted.incident_type
+        : null;
 
     await prisma.incident.update({
       where: { id: incidentId },
       data: {
         aiExtractedLocation: extracted.location_text ?? undefined,
         locationText: extracted.location_text ?? undefined,
+        ...(newType ? { type: newType } : {}),
         ...(place && allowCoordOverwrite
           ? {
               locationLat: place.lat,
@@ -288,6 +363,7 @@ async function runLocationPipeline(incidentId: string, transcript: string) {
       id: incidentId,
       aiExtractedLocation: extracted.location_text ?? undefined,
       locationText: extracted.location_text ?? undefined,
+      ...(newType ? { type: newType } : {}),
       ...(place && allowCoordOverwrite
         ? {
             locationLat: place.lat,
@@ -309,7 +385,7 @@ async function runLocationPipeline(incidentId: string, transcript: string) {
         incidentId,
         text: `[AI] Location: ${extracted.location_text}${
           place ? (allowCoordOverwrite ? " ✓" : " (kept device GPS)") : " (not geocoded)"
-        }`,
+        }${newType ? ` · classified as ${newType}` : ""}`,
         timestamp: new Date().toISOString(),
         extractedData: extracted as unknown as Record<string, unknown>,
       });
